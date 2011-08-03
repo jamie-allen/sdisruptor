@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="sdisruptor" default="all" basedir=".">
+
+    <property name="dir.main.src" value="src/main/scala"/>
+    <property name="dir.main.build" value="target/main/classes"/>
+
+    <property name="dir.test.src" value="src/test/java"/>
+    <property name="dir.perf.src" value="src/perf/java"/>
+    <property name="dir.test.build" value="target/test/classes"/>
+    <property name="dir.test.lib" value="lib/test"/>
+
+    <property name="dir.reports" value="target/reports"/>
+    <property name="dir.dist" value="target/dist"/>
+    <property name="dir.docs" value="target/docs"/>
+    <property name="env.SCALA_HOME" value="/Applications/typesafe-stack"/>
+
+    <path id="project.classpath">
+      <pathelement location="${dir.main.build}" />
+      <fileset dir="${env.SCALA_HOME}/lib/"> 
+        <include name="*.jar" /> 
+      </fileset>
+    </path>
+
+    <taskdef resource="scala/tools/ant/antlib.xml">
+      <classpath>
+        <pathelement location="${env.SCALA_HOME}/lib/scala-compiler.jar" />
+        <pathelement location="${env.SCALA_HOME}/lib/scala-library.jar" />
+      </classpath>
+    </taskdef>
+
+    <path id="test.classpath">
+        <pathelement location="${dir.test.build}"/>
+        <pathelement location="${dir.main.build}"/>
+        <fileset dir="${dir.test.lib}">
+            <include name="*.jar"/>
+            <include name="*.zip"/>
+        </fileset>
+    </path>
+
+    <target name="clean"
+            description="Remove the generated files">
+        <delete dir="target"/>
+    </target>
+
+    <target name="main:prepare">
+        <mkdir dir="${dir.main.build}"/>
+        <mkdir dir="${dir.dist}"/>
+        <mkdir dir="${dir.docs}"/>
+    </target>
+
+    <target name="test:prepare">
+        <mkdir dir="${dir.test.build}"/>
+        <mkdir dir="${dir.reports}/unit"/>
+        <mkdir dir="${dir.reports}/perf"/>
+    </target>
+
+    <target name="build"
+            depends="main:prepare"
+            description="Build main source code">
+        <scalac destdir="${dir.main.build}">
+            <src path="${dir.main.src}"/>
+            <include name="**/*.scala"/>
+        </scalac>
+    </target>
+
+    <target name="test"
+            depends="test:prepare, build"
+            description="Run the unit tests">
+        <javac destdir="${dir.test.build}"
+               includeAntRuntime="false"
+               debug="true"
+               nowarn="true">
+            <classpath refid="test.classpath"/>
+            <src path="${dir.test.src}"/>
+        </javac>
+        <junit printsummary="on"
+               fork="false"
+               haltonfailure="true">
+            <classpath refid="test.classpath"/>
+            <formatter type="xml"/>
+            <batchtest fork="false" todir="${dir.reports}/unit">
+                <fileset dir="${dir.test.src}">
+                    <include name="**/*Test.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <junitreport todir="${dir.reports}/unit">
+          <fileset dir="${dir.reports}/unit">
+            <include name="TEST-*.xml" />
+          </fileset>
+          <report todir="${dir.reports}/unit" />
+        </junitreport>
+    </target>
+
+    <target name="perf:test"
+            depends="test:prepare, build"
+            description="Run the performance tests">
+        <javac destdir="${dir.test.build}"
+               includeAntRuntime="false"
+               debug="true"
+               nowarn="true">
+            <classpath refid="test.classpath"/>
+            <src path="${dir.perf.src}"/>
+        </javac>
+        <junit printsummary="on"
+               fork="true"
+               forkmode="perTest"
+               haltonfailure="false">
+            <classpath refid="test.classpath"/>
+            <formatter type="xml"/>
+            <batchtest fork="false" todir="${dir.reports}/perf">
+                <fileset dir="${dir.perf.src}">
+                    <include name="**/*PerfTest.java"/>
+                </fileset>
+            </batchtest>
+        </junit>
+        <junitreport todir="${dir.reports}/perf">
+          <fileset dir="${dir.reports}/perf">
+            <include name="TEST-*.xml" />
+          </fileset>
+          <report todir="${dir.reports}/perf"/>
+        </junitreport>
+    </target>
+
+    <target name="javadoc" depends="main:prepare">
+        <javadoc sourcepath="${dir.main.src}"
+                 destdir="${dir.docs}"
+                 author="true"
+                 version="true"
+                 use="true"
+                 windowtitle="SDisruptor API">
+            <doctitle><![CDATA[<h1>Disruptor</h1>]]></doctitle>
+            <bottom><![CDATA[<i>Copyright &#169; 2011 LMAX Ltd. All Rights Reserved.</i>]]></bottom>
+            <link href="http://www.lmax.com/"/>
+        </javadoc>
+    </target>
+
+    <target name="dist" depends="build">
+        <jar destfile="${dir.dist}/disruptor.jar" basedir="${dir.main.build}"/>
+        <zip destfile="${dir.dist}/disruptor-src.zip" basedir="${dir.main.src}"/>
+        <zip destfile="${dir.dist}/disruptor-api.zip" basedir="${dir.docs}"/>
+    </target>
+
+    <target name="all" depends="clean, build, test, javadoc, dist"/>
+
+</project>
