@@ -90,178 +90,106 @@ class Histogram(origUpperBounds: Array[Long]) {
     false
   }
 
-  def trackRange(value: Long) =
+  def trackRange(value: Long) {
     if (value < minValue) minValue = value
     else if (value > maxValue) maxValue = value
+  }
 
-    /**
-     * Add observations from another Histogram into this one.
-     * Histograms must have the same intervals.
-     *
-     * @param histogram from which to add the observation counts.
-     */
-    public void addObservations(final Histogram histogram)
+  /** Add observations from another Histogram into this one.
+   *  Histograms must have the same intervals.
+   *
+   *  @param histogram from which to add the observation counts.
+   */
+  def addObservations(histogram: Histogram) {
+    if (!upperBounds.corresponds(histogram.upperBounds){_ == _}) throw new IllegalArgumentException("Histograms must have matching intervals")
+
+    for (i <- 0 until counts.length) counts(i) += histogram.counts(i)
+
+    trackRange(histogram.minValue)
+    trackRange(histogram.maxValue)
+  }
+
+  /** Clear the list of interval counters.
+   */
+  def clear() {
+  	maxValue = 0L
+  	minValue = Long.MaxValue
+  	for (i <- 0 until counts.length) counts(i) = 0
+  }
+
+  /** Count total number of recorded observations.
+   *
+   *  @return the total number of recorded observations.
+   */
+  def count = counts.reduceLeft(_ + _)
+
+  /** Calculate the mean of all recorded observations.
+   *
+   *  The mean is calculated by the summing the mid points of each interval multiplied by the count
+   *  for that interval, then dividing by the total count of observations.  The max and min are
+   *  considered for adjusting the top and bottom bin when calculating the mid point.
+   *
+   *  @return the mean of all recorded observations.
+   */
+  def getMean(): BigDecimal = {
+    if (0L == count) return BigDecimal.ZERO
+
+    var lowerBound = if (counts(0) > 0L) minValue else 0L
+    var total = BigDecimal.ZERO
+
+  	for (i <- 0 until upperBounds.length) {
+	    if (0L != counts(i)) {
+        val upperBound = Math.min(upperBounds(i), maxValue)
+        val midPoint = lowerBound + ((upperBound - lowerBound) / 2L)
+
+        val intervalTotal = new BigDecimal(midPoint).multiply(new BigDecimal(counts(i)))
+        total = total.add(intervalTotal)
+	    }
+
+	    lowerBound = Math.max(upperBounds(i) + 1L, minValue)
+  	}
+
+    return total.divide(new BigDecimal(count), 2, RoundingMode.HALF_UP)
+  }
+
+  /** Calculate the upper bound within which 99% of observations fall.
+   *
+   *  @return the upper bound for 99% of observations.
+   */
+  def getTwoNinesUpperBound = getUpperBoundForFactor(0.99d)
+
+	/** Calculate the upper bound within which 99.99% of observations fall.
+	 *
+	 *  @return the upper bound for 99.99% of observations.
+   */
+	def getFourNinesUpperBound = getUpperBoundForFactor(0.9999d)
+
+	/** Get the interval upper bound for a given factor of the observation population.
+	 *
+	 *  @param factor representing the size of the population.
+	 *  @return the interval upper bound.
+	 */
+  def getUpperBoundForFactor(factor: Double) = {
+    if (0.0d >= factor || factor >= 1.0d) throw new IllegalArgumentException("factor must be >= 0.0 and <= 1.0")
+
+    var totalCount = count
+    val tailTotal = totalCount - Math.round(totalCount * factor)
+    val tailCount = 0L
+
+    for (int i = counts.length - 1; i >= 0; i--)
     {
-        if (upperBounds.length != histogram.upperBounds.length)
+        if (0L != counts[i])
         {
-            throw new IllegalArgumentException("Histograms must have matching intervals");
-        }
-
-        for (int i = 0, size = upperBounds.length; i < size; i++)
-        {
-            if (upperBounds[i] != histogram.upperBounds[i])
+            tailCount += counts[i];
+            if (tailCount >= tailTotal)
             {
-                throw new IllegalArgumentException("Histograms must have matching intervals");
+                return upperBounds[i];
             }
         }
-
-        for (int i = 0, size = counts.length; i < size; i++)
-        {
-            counts[i] += histogram.counts[i];
-        }
-
-        trackRange(histogram.minValue);
-        trackRange(histogram.maxValue);
     }
 
-    /**
-     * Clear the list of interval counters.
-     */
-    public void clear()
-    {
-        maxValue = 0L;
-        minValue = Long.MAX_VALUE;
-
-        for (int i = 0, size = counts.length; i < size; i++)
-        {
-            counts[i] = 0L;
-        }
-    }
-
-    /**
-     * Count total number of recorded observations.
-     *
-     * @return the total number of recorded observations.
-     */
-    public long getCount()
-    {
-        long count = 0L;
-
-        for (int i = 0, size = counts.length; i < size; i++)
-        {
-            count += counts[i];
-        }
-
-        return count;
-    }
-
-    /**
-     * Get the minimum observed value.
-     *
-     * @return the minimum value observed.
-     */
-    public long getMin()
-    {
-        return minValue;
-    }
-
-    /**
-     * Get the maximum observed value.
-     *
-     * @return the maximum of the observed values;
-     */
-    public long getMax()
-    {
-        return maxValue;
-    }
-
-    /**
-     * Calculate the mean of all recorded observations.
-     *
-     * The mean is calculated by the summing the mid points of each interval multiplied by the count
-     * for that interval, then dividing by the total count of observations.  The max and min are
-     * considered for adjusting the top and bottom bin when calculating the mid point.
-     *
-     * @return the mean of all recorded observations.
-     */
-    public BigDecimal getMean()
-    {
-        if (0L == getCount())
-        {
-            return BigDecimal.ZERO;
-        }
-
-        long lowerBound = counts[0] > 0L ? minValue : 0L;
-        BigDecimal total = BigDecimal.ZERO;
-
-        for (int i = 0, size = upperBounds.length; i < size; i++)
-        {
-            if (0L != counts[i])
-            {
-                final long upperBound = Math.min(upperBounds[i], maxValue);
-                final long midPoint = lowerBound + ((upperBound - lowerBound) / 2L);
-
-                final BigDecimal intervalTotal = new BigDecimal(midPoint).multiply(new BigDecimal(counts[i]));
-                total = total.add(intervalTotal);
-            }
-
-            lowerBound = Math.max(upperBounds[i] + 1L, minValue);
-        }
-
-        return total.divide(new BigDecimal(getCount()), 2, RoundingMode.HALF_UP);
-    }
-
-    /**
-     * Calculate the upper bound within which 99% of observations fall.
-     *
-     * @return the upper bound for 99% of observations.
-     */
-    public long getTwoNinesUpperBound()
-    {
-        return getUpperBoundForFactor(0.99d);
-    }
-
-    /**
-     * Calculate the upper bound within which 99.99% of observations fall.
-     *
-     * @return the upper bound for 99.99% of observations.
-     */
-    public long getFourNinesUpperBound()
-    {
-        return getUpperBoundForFactor(0.9999d);
-    }
-
-    /**
-     * Get the interval upper bound for a given factor of the observation population.
-     *
-     * @param factor representing the size of the population.
-     * @return the interval upper bound.
-     */
-    public long getUpperBoundForFactor(final double factor)
-    {
-        if (0.0d >= factor || factor >= 1.0d)
-        {
-            throw new IllegalArgumentException("factor must be >= 0.0 and <= 1.0");
-        }
-
-        final long totalCount = getCount();
-        final long tailTotal = totalCount - Math.round(totalCount * factor);
-        long tailCount = 0L;
-
-        for (int i = counts.length - 1; i >= 0; i--)
-        {
-            if (0L != counts[i])
-            {
-                tailCount += counts[i];
-                if (tailCount >= tailTotal)
-                {
-                    return upperBounds[i];
-                }
-            }
-        }
-
-        return 0L;
-    }
+    return 0L;
+  }
 
     @Override
     public String toString()
