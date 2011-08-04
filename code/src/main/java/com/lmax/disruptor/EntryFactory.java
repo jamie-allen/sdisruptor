@@ -15,6 +15,8 @@
  */
 package com.lmax.disruptor;
 
+import com.jamieallen.sdisruptor.AbstractEntry;
+
 /**
  * Called by the {@link RingBuffer} to pre-populate all the {@link AbstractEntry}s to fill the RingBuffer.
  * 

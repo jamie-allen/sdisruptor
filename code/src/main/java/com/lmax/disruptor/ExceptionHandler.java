@@ -15,6 +15,8 @@
  */
 package com.lmax.disruptor;
 
+import com.jamieallen.sdisruptor.AbstractEntry;
+
 /**
  * Callback handler for uncaught exceptions in the {@link AbstractEntry} processing cycle of the {@link BatchConsumer}
  */

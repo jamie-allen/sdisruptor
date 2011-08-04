@@ -15,7 +15,7 @@
  */
 package com.lmax.disruptor.support;
 
-import com.lmax.disruptor.AbstractEntry;
+import com.jamieallen.sdisruptor.AbstractEntry;
 import com.lmax.disruptor.EntryFactory;
 
 public final class ValueEntry extends AbstractEntry

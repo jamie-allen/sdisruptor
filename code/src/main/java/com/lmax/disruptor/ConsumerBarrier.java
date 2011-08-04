@@ -16,6 +16,7 @@
 package com.lmax.disruptor;
 
 import java.util.concurrent.TimeUnit;
+import com.jamieallen.sdisruptor.AbstractEntry;
 
 /**
  * Coordination barrier for tracking the cursor for producers and sequence of

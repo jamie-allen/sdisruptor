@@ -15,6 +15,7 @@
  */
 package com.lmax.disruptor;
 
+import com.jamieallen.sdisruptor.AbstractEntry;
 import com.lmax.disruptor.support.TestEntry;
 import org.jmock.Expectations;
 import org.jmock.Mockery;

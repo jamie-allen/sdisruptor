@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.lmax.disruptor.Util.ceilingNextPowerOfTwo;
 import static com.lmax.disruptor.Util.getMinimumSequence;
+import com.jamieallen.sdisruptor.AbstractEntry;
 
 /**
  * Ring based store of reusable entries containing the data representing an {@link AbstractEntry} being exchanged between producers and consumersToTrack.
@@ -146,7 +147,7 @@ public final class RingBuffer<T extends AbstractEntry>
         ensureConsumersAreInRange(sequence);
 
         AbstractEntry entry = entries[(int)sequence & ringModMask];
-        entry.setSequence(sequence);
+        entry.sequence_(sequence);
 
         return (T)entry;
     }
@@ -154,7 +155,7 @@ public final class RingBuffer<T extends AbstractEntry>
     @Override
     public void commit(final T entry)
     {
-        commit(entry.getSequence(), 1);
+        commit(entry.sequence(), 1);
     }
 
     @Override
@@ -167,7 +168,7 @@ public final class RingBuffer<T extends AbstractEntry>
         for (long i = sequenceBatch.getStart(), end = sequenceBatch.getEnd(); i <= end; i++)
         {
             AbstractEntry entry = entries[(int)i & ringModMask];
-            entry.setSequence(i);
+            entry.sequence_(i);
         }
 
         return sequenceBatch;
@@ -190,7 +191,7 @@ public final class RingBuffer<T extends AbstractEntry>
     {
         ensureConsumersAreInRange(sequence);
         AbstractEntry entry = entries[(int)sequence & ringModMask];
-        entry.setSequence(sequence);
+        entry.sequence_(sequence);
 
         return (T)entry;
     }
@@ -204,7 +205,7 @@ public final class RingBuffer<T extends AbstractEntry>
      */
     public void commitWithForce(final T entry)
     {
-        long sequence = entry.getSequence();
+        long sequence = entry.sequence();
         claimStrategy.setSequence(sequence);
         cursor = sequence;
         waitStrategy.signalAll();

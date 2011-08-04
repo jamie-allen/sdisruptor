@@ -15,6 +15,8 @@
  */
 package com.lmax.disruptor;
 
+import com.jamieallen.sdisruptor.AbstractEntry;
+
 /**
  * Abstraction for claiming {@link AbstractEntry}s in a {@link RingBuffer} while tracking dependent {@link Consumer}s
  *

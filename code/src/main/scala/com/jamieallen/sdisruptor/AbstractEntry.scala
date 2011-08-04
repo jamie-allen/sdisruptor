@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.lmax.disruptor.support;
+package com.jamieallen.sdisruptor
 
-import com.jamieallen.sdisruptor.AbstractEntry;
-import com.lmax.disruptor.EntryFactory;
-
-public final class TestEntry
-    extends AbstractEntry
-{
-    @Override
-    public String toString()
-    {
-        return "Test Entry";
-    }
-
-    public final static EntryFactory<TestEntry> ENTRY_FACTORY = new EntryFactory<TestEntry>()
-    {
-        public TestEntry create()
-        {
-            return new TestEntry();
-        }
-    };
+/** Base implementation that must be extended for {@link RingBuffer} entries.
+ */
+abstract class AbstractEntry {
+  var _sequence: Long
+  
+  def sequence: Long = sequence
+  def sequence_(newValue: Long) { _sequence = newValue }
 }

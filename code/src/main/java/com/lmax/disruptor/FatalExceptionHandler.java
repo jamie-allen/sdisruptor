@@ -17,6 +17,7 @@ package com.lmax.disruptor;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.jamieallen.sdisruptor.AbstractEntry;
 
 /**
  * Convenience implementation of an exception handler that using standard JDK logging to log

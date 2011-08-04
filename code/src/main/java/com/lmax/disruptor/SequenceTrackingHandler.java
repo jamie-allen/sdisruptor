@@ -15,6 +15,8 @@
  */
 package com.lmax.disruptor;
 
+import com.jamieallen.sdisruptor.AbstractEntry;
+
 /**
  * Used by the {@link BatchConsumer} to set a callback allowing the {@link BatchHandler} to notify
  * when it has finished consuming an {@link AbstractEntry} if this happens after the {@link BatchHandler#onAvailable(AbstractEntry)} call.

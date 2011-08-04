@@ -15,6 +15,8 @@
  */
 package com.lmax.disruptor;
 
+import com.jamieallen.sdisruptor.AbstractEntry;
+
 /**
  * Implementations translate a other data representations into {@link AbstractEntry}s claimed from the {@link RingBuffer}
  *
