@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <project name="sdisruptor" default="all" basedir=".">
 
-    <property name="dir.main.src" value="src/main/scala"/>
+    <property name="dir.main.src" value="src/main"/>
+    <property name="dir.main.java.src" value="src/main/java"/>
+    <property name="dir.main.scala.src" value="src/main/scala"/>
     <property name="dir.main.build" value="target/main/classes"/>
 
     <property name="dir.test.src" value="src/test/java"/>
@@ -58,9 +60,15 @@
             depends="main:prepare"
             description="Build main source code">
         <scalac destdir="${dir.main.build}">
-            <src path="${dir.main.src}"/>
+            <src path="${dir.main.scala.src}"/>
             <include name="**/*.scala"/>
         </scalac>
+        <javac destdir="${dir.main.build}"
+             includeAntRuntime="false"
+             debug="true"
+             nowarn="true">
+            <src path="${dir.main.java.src}"/>
+        </javac>
     </target>
 
     <target name="test"
@@ -123,7 +131,7 @@
     </target>
 
     <target name="javadoc" depends="main:prepare">
-        <javadoc sourcepath="${dir.main.src}"
+        <javadoc sourcepath="${dir.main.scala.src}"
                  destdir="${dir.docs}"
                  author="true"
                  version="true"

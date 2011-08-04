@@ -16,7 +16,7 @@
 package com.lmax.disruptor.support;
 
 import com.lmax.disruptor.BatchHandler;
-import com.lmax.disruptor.collections.Histogram;
+import com.jamieallen.sdisruptor.collections.Histogram;
 
 public final class LatencyStepHandler implements BatchHandler<ValueEntry>
 {

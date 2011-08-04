@@ -15,7 +15,7 @@
  */
 package com.lmax.disruptor.support;
 
-import com.lmax.disruptor.collections.Histogram;
+import com.jamieallen.sdisruptor.collections.Histogram;
 
 import java.util.concurrent.BlockingQueue;
 

@@ -15,14 +15,16 @@
  */
 package com.lmax.disruptor.collections;
 
-import org.junit.Test;
-
-import java.math.BigDecimal;
-
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.math.BigDecimal;
+
+import org.junit.Test;
+
+import com.jamieallen.sdisruptor.collections.Histogram;
 
 public final class HistogramTest
 {
@@ -32,13 +34,13 @@ public final class HistogramTest
     @Test
     public void shouldSizeBasedOnBucketConfiguration()
     {
-        assertThat(Long.valueOf(histogram.getSize()), is(Long.valueOf(INTERVALS.length)));
+        assertThat(Long.valueOf(histogram.size()), is(Long.valueOf(INTERVALS.length)));
     }
 
     @Test
     public void shouldWalkIntervals()
     {
-        for (int i = 0, size = histogram.getSize(); i < size; i++)
+        for (int i = 0, size = histogram.size(); i < size; i++)
         {
             assertThat(Long.valueOf(histogram.getUpperBoundAt(i)), is(Long.valueOf(INTERVALS[i])));
         }
@@ -47,7 +49,7 @@ public final class HistogramTest
     @Test
     public void shouldConfirmIntervalsAreInitialised()
     {
-        for (int i = 0, size = histogram.getSize(); i < size; i++)
+        for (int i = 0, size = histogram.size(); i < size; i++)
         {
             assertThat(Long.valueOf(histogram.getCountAt(i)), is(Long.valueOf(0L)));
         }
@@ -89,7 +91,7 @@ public final class HistogramTest
 
         histogram.addObservations(histogram2);
 
-        assertThat(Long.valueOf(6L), is(Long.valueOf(histogram.getCount())));
+        assertThat(Long.valueOf(6L), is(Long.valueOf(histogram.count())));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -105,7 +107,7 @@ public final class HistogramTest
         addObservations(histogram, 1L, 7L, 10L, 3000L);
         histogram.clear();
 
-        for (int i = 0, size = histogram.getSize(); i < size; i++)
+        for (int i = 0, size = histogram.size(); i < size; i++)
         {
             assertThat(Long.valueOf(histogram.getCountAt(i)), is(Long.valueOf(0)));
         }
@@ -116,7 +118,7 @@ public final class HistogramTest
     {
         addObservations(histogram, 1L, 7L, 10L, 3000L);
 
-        assertThat(Long.valueOf(histogram.getCount()), is(Long.valueOf(4L)));
+        assertThat(Long.valueOf(histogram.count()), is(Long.valueOf(4L)));
     }
 
     @Test
@@ -149,7 +151,7 @@ public final class HistogramTest
     {
         addObservations(histogram, 1L, 7L, 10L, 10L, 11L, 144L);
 
-        assertThat(Long.valueOf(histogram.getMax()), is(Long.valueOf(144L)));
+        assertThat(Long.valueOf(histogram.maxValue()), is(Long.valueOf(144L)));
     }
 
     @Test
@@ -157,7 +159,7 @@ public final class HistogramTest
     {
         addObservations(histogram, 1L, 7L, 10L, 10L, 11L, 144L);
 
-        assertThat(Long.valueOf(histogram.getMin()), is(Long.valueOf(1L)));
+        assertThat(Long.valueOf(histogram.minValue()), is(Long.valueOf(1L)));
     }
 
     @Test

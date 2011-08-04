@@ -15,7 +15,7 @@
  */
 package com.lmax.disruptor;
 
-import com.lmax.disruptor.collections.Histogram;
+import com.jamieallen.sdisruptor.collections.Histogram;
 import com.lmax.disruptor.support.*;
 import org.junit.Test;
 
@@ -176,14 +176,14 @@ public final class Pipeline3StepLatencyPerfTest
 
             histogram.clear();
             runDisruptorPass();
-            assertThat(Long.valueOf(histogram.getCount()), is(Long.valueOf(ITERATIONS)));
+            assertThat(Long.valueOf(histogram.count()), is(Long.valueOf(ITERATIONS)));
             final BigDecimal disruptorMeanLatency = histogram.getMean();
             System.out.format("%s run %d Disruptor %s\n", getClass().getSimpleName(), Long.valueOf(i), histogram);
             dumpHistogram(System.out);
 
             histogram.clear();
             runQueuePass();
-            assertThat(Long.valueOf(histogram.getCount()), is(Long.valueOf(ITERATIONS)));
+            assertThat(Long.valueOf(histogram.count()), is(Long.valueOf(ITERATIONS)));
             final BigDecimal queueMeanLatency = histogram.getMean();
             System.out.format("%s run %d Queues %s\n", getClass().getSimpleName(), Long.valueOf(i), histogram);
             dumpHistogram(System.out);
@@ -194,7 +194,7 @@ public final class Pipeline3StepLatencyPerfTest
 
     private void dumpHistogram(final PrintStream out)
     {
-        for (int i = 0, size = histogram.getSize(); i < size; i++)
+        for (int i = 0, size = histogram.size(); i < size; i++)
         {
             out.print(histogram.getUpperBoundAt(i));
             out.print('\t');

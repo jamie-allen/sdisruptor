@@ -26,7 +26,7 @@ import java.math.RoundingMode
 class Histogram(origUpperBounds: Array[Long]) {
   validateBounds(origUpperBounds)
 
-  val upperBounds: Array[Long]
+  val upperBounds: Array[Long] = new Array[Long](origUpperBounds.length)
   Array.copy(origUpperBounds, 0, upperBounds, 0, origUpperBounds.length)
 
   val counts = new Array[Long](upperBounds.length)
@@ -169,55 +169,41 @@ class Histogram(origUpperBounds: Array[Long]) {
 	 *  @param factor representing the size of the population.
 	 *  @return the interval upper bound.
 	 */
-  def getUpperBoundForFactor(factor: Double) = {
+  def getUpperBoundForFactor(factor: Double): Long = {
     if (0.0d >= factor || factor >= 1.0d) throw new IllegalArgumentException("factor must be >= 0.0 and <= 1.0")
 
     var totalCount = count
     val tailTotal = totalCount - Math.round(totalCount * factor)
-    val tailCount = 0L
+    var tailCount = 0L
 
-    for (int i = counts.length - 1; i >= 0; i--)
-    {
-        if (0L != counts[i])
-        {
-            tailCount += counts[i];
-            if (tailCount >= tailTotal)
-            {
-                return upperBounds[i];
-            }
-        }
+    for (i <- counts.indices.reverse) {
+//    for (i <- counts.length - 1 until -1 by -1) {
+      if (0L != counts(i)) {
+        tailCount += counts(i)
+        if (tailCount >= tailTotal) return upperBounds(i)
+      }
     }
 
     return 0L;
   }
 
-    @Override
-    public String toString()
-    {
-        final StringBuilder sb = new StringBuilder();
+  override def toString(): String = {
+    val sb = new StringBuilder()
+    sb.append("Histogram{");
 
-        sb.append("Histogram{");
+    sb.append("min=").append(minValue).append(", ");
+    sb.append("max=").append(maxValue).append(", ");
+    sb.append("mean=").append(getMean()).append(", ");
+    sb.append("99%=").append(getTwoNinesUpperBound).append(", ");
+    sb.append("99.99%=").append(getFourNinesUpperBound).append(", ");
 
-        sb.append("min=").append(getMin()).append(", ");
-        sb.append("max=").append(getMax()).append(", ");
-        sb.append("mean=").append(getMean()).append(", ");
-        sb.append("99%=").append(getTwoNinesUpperBound()).append(", ");
-        sb.append("99.99%=").append(getFourNinesUpperBound()).append(", ");
+    sb.append('[');
+  	for (i <- 0 until counts.length) sb.append(upperBounds(i)).append('=').append(counts(i)).append(", ");
 
-        sb.append('[');
-        for (int i = 0, size = counts.length; i < size; i++)
-        {
-            sb.append(upperBounds[i]).append('=').append(counts[i]).append(", ");
-        }
+    if (counts.length > 0) sb.setLength(sb.length() - 2);
+    sb.append(']');
+    sb.append('}');
 
-        if (counts.length > 0)
-        {
-            sb.setLength(sb.length() - 2);
-        }
-        sb.append(']');
-
-        sb.append('}');
-
-        return sb.toString();
-    }
+    return sb.toString();
+  }
 }
