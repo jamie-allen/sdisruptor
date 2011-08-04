@@ -17,11 +17,9 @@ package com.jamieallen.sdisruptor
 
 import _root_.com.lmax.disruptor.FatalExceptionHandler
 import _root_.com.lmax.disruptor.ConsumerBarrier
-import _root_.com.lmax.disruptor.BatchHandler
 import _root_.com.lmax.disruptor.SequenceTrackingHandler
 import _root_.com.lmax.disruptor.LifecycleAware
 import _root_.com.lmax.disruptor.ExceptionHandler
-import _root_.com.lmax.disruptor.AlertException
 
 /** Convenience class for handling the batching semantics of consuming entries from a {@link RingBuffer}
  *  and delegating the available {@link AbstractEntry}s to a {@link BatchHandler}.
@@ -31,7 +29,7 @@ import _root_.com.lmax.disruptor.AlertException
  *
  *  @param <T> Entry implementation storing the data for sharing during exchange or parallel coordination of an event.
  */
-class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], handler: BatchHandler[T])  extends Consumer {
+class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], handler: BatchHandler[T]) extends Consumer {
   var p1, p2, p3, p4, p5, p6, p7: Long  // cache line padding
   var p8, p9, p10, p11, p12, p13, p14: Long // cache line padding
   @volatile private var _sequence: Long = -1L // TODO: RingBuffer.INITIAL_CURSOR_VALUE;
@@ -48,11 +46,10 @@ class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], han
     consumerBarrier.alert
   }
 
-  /**
-   * Set a new {@link ExceptionHandler} for handling exceptions propagated out of the {@link BatchConsumer}
-   * (Jamie Allen: I'm allowing this to stay nullable for now)
+  /** Set a new {@link ExceptionHandler} for handling exceptions propagated out of the {@link BatchConsumer}
+   *  (Jamie Allen: I'm allowing this to stay nullable for now)
    *
-   * @param exceptionHandler to replace the existing exceptionHandler.
+   *  @param exceptionHandler to replace the existing exceptionHandler.
    */
   def exceptionHandler_(newExceptionHandler: ExceptionHandler) {
     if (null == newExceptionHandler) throw new NullPointerException();
@@ -86,7 +83,7 @@ class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], han
 	        _exceptionHandler.handle(ex, entry.asInstanceOf[AbstractEntry])
 	        _sequence = entry.sequence
 	        nextSequence = entry.sequence + 1
-	      }
+        }
       }
     }
 
