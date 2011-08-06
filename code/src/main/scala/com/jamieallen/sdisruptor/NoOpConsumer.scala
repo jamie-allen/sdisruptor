@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., ported to Scala by Jamie Allen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.lmax.disruptor;
+package com.jamieallen.sdisruptor
 
-import com.jamieallen.sdisruptor.AbstractEntry;
-
-/**
- * Called by the {@link RingBuffer} to pre-populate all the {@link AbstractEntry}s to fill the RingBuffer.
- * 
- * @param <T> AbstractEntry implementation storing the data for sharing during exchange or parallel coordination of an event.
+/** No operation version of a {@link Consumer} that simply tracks a {@link RingBuffer}.
+ *  This is useful in tests or for pre-filling a {@link RingBuffer} from a producer.
  */
-public interface EntryFactory<T extends AbstractEntry>
-{
-    T create();
+class NoOpConsumer(ringBuffer: RingBuffer) extends Consumer {
+
+  override def sequence = ringBuffer.getCursor()
+
+  override def halt() { }
+
+  override def run() { }
 }

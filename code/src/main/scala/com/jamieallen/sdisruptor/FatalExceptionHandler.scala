@@ -15,17 +15,18 @@
  */
 package com.jamieallen.sdisruptor
 
-/** EntryConsumers waitFor {@link AbstractEntry}s to become available for consumption from the {@link RingBuffer}
- */
-trait Consumer extends Runnable {
-  /** Get the sequence up to which this Consumer has consumed {@link AbstractEntry}s
-   *
-   *  @return the sequence of the last consumed {@link AbstractEntry}
-   */
-  def sequence: Long
+import java.util.logging.{Level, Logger}
 
-  /** Signal that this Consumer should stop when it has finished consuming at the next clean break.
-   *  It will call {@link ConsumerBarrier#alert()} to notify the thread to check status.
-   */
-  def halt()
+/** Convenience implementation of an exception handler that using standard JDK logging to log
+ *  the exception as {@link Level}.SEVERE and re-throw it wrapped in a {@link RuntimeException}
+ */
+class FatalExceptionHandler(newLogger: Option[Logger]) extends ExceptionHandler {
+  val logger: Logger = if (newLogger.isDefined) newLogger.get 
+  											else Logger.getLogger(classOf[FatalExceptionHandler].getName())
+
+  override def handle(ex: Exception, currentEntry: AbstractEntry) { 
+    logger.log(Level.SEVERE, "Exception processing: " + currentEntry, ex);
+
+    throw new RuntimeException(ex);
+  }
 }

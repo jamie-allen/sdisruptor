@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd., modified by Jamie Allen
+ * Copyright 2011 LMAX Ltd., ported to Scala by Jamie Allen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,20 @@ package com.jamieallen.sdisruptor
 import java.util.concurrent.atomic.AtomicLong;
 
 object ClaimStrategy {
+  val MultiThreaded = 'multiThreaded
+  val SingleThreaded = 'singleThreaded
+  
 	def newInstance(option: Symbol): ClaimStrategy = {
 	  option match {
-	    case 'singleThreaded => new SingleThreadedStrategy
-	    case 'multiThreaded => new MultiThreadedStrategy
+	    case SingleThreaded => new SingleThreadedStrategy
+	    case MultiThreaded => new MultiThreadedStrategy
 	  }
 	}
 
   /** Optimised strategy can be used when there is a single producer thread claiming {@link AbstractEntry}s.
    */
   class SingleThreadedStrategy extends ClaimStrategy {
-    private var _sequence = RingBuffer.INITIAL_CURSOR_VALUE
+    private var _sequence = RingBuffer.InitialCursorValue
 
     override def incrementAndGet() = {
       _sequence += 1
@@ -46,7 +49,7 @@ object ClaimStrategy {
   /** Strategy to be used when there are multiple producer threads claiming {@link AbstractEntry}s.
 	 */
   class MultiThreadedStrategy extends ClaimStrategy {
-	  private val _sequence = new AtomicLong(RingBuffer.INITIAL_CURSOR_VALUE)
+	  private val _sequence = new AtomicLong(RingBuffer.InitialCursorValue)
 	
 	  override def incrementAndGet() = _sequence.incrementAndGet
 	  override def incrementAndGet(delta: Int) = _sequence.addAndGet(delta)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd., modified by Jamie Allen
+ * Copyright 2011 LMAX Ltd., ported to Scala by Jamie Allen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  */
 package com.jamieallen.sdisruptor
 
-import _root_.com.lmax.disruptor.FatalExceptionHandler
-import _root_.com.lmax.disruptor.ConsumerBarrier
-import _root_.com.lmax.disruptor.SequenceTrackingHandler
-import _root_.com.lmax.disruptor.LifecycleAware
-import _root_.com.lmax.disruptor.ExceptionHandler
-
 /** Convenience class for handling the batching semantics of consuming entries from a {@link RingBuffer}
  *  and delegating the available {@link AbstractEntry}s to a {@link BatchHandler}.
  *
@@ -32,9 +26,9 @@ import _root_.com.lmax.disruptor.ExceptionHandler
 class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], handler: BatchHandler[T]) extends Consumer {
   var p1, p2, p3, p4, p5, p6, p7: Long  // cache line padding
   var p8, p9, p10, p11, p12, p13, p14: Long // cache line padding
-  @volatile private var _sequence: Long = -1L // TODO: RingBuffer.INITIAL_CURSOR_VALUE;
+  @volatile private var _sequence: Long = RingBuffer.InitialCursorValue
 
-  private var _exceptionHandler: ExceptionHandler = new FatalExceptionHandler()
+  private var _exceptionHandler: ExceptionHandler = new FatalExceptionHandler(None)
   @volatile private var running = true
 
   if (handler.isInstanceOf[SequenceTrackingHandler[T]]) 

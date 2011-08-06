@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., ported to Scala by Jamie Allen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.lmax.disruptor;
+package com.jamieallen.sdisruptor
 
-/**
- * Implement this interface to be notified when a thread for the {@link BatchConsumer} starts and shuts down.
+/** Called by the {@link RingBuffer} to pre-populate all the {@link AbstractEntry}s to fill the RingBuffer.
+ * 
+ *  @param <T> AbstractEntry implementation storing the data for sharing during exchange or parallel coordination of an event.
  */
-public interface LifecycleAware
-{
-    /**
-     * Called once on thread start before first entry is available.
-     */
-    void onStart();
-
-    /**
-     * Called once just before the thread is shutdown.
-     */
-    void onShutdown();
+trait EntryFactory[T <: AbstractEntry] {
+    def create(): T
 }

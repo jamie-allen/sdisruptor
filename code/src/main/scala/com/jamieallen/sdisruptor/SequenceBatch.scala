@@ -15,17 +15,26 @@
  */
 package com.jamieallen.sdisruptor
 
-/** EntryConsumers waitFor {@link AbstractEntry}s to become available for consumption from the {@link RingBuffer}
+/** Used to record the batch of sequences claimed in a {@link RingBuffer}.
  */
-trait Consumer extends Runnable {
-  /** Get the sequence up to which this Consumer has consumed {@link AbstractEntry}s
-   *
-   *  @return the sequence of the last consumed {@link AbstractEntry}
-   */
-  def sequence: Long
+class SequenceBatch(val size: Int) {
+  private var _end = RingBuffer.InitialCursorValue
 
-  /** Signal that this Consumer should stop when it has finished consuming at the next clean break.
-   *  It will call {@link ConsumerBarrier#alert()} to notify the thread to check status.
+  /** Get the end sequence of a batch.
+   *
+   *  @return the end sequence in a batch
    */
-  def halt()
+  def end = _end
+
+  /** Set the end of the batch sequence.  To be used by the {@link ProducerBarrier}.
+   *
+   *  @param end sequence in the batch.
+   */
+  def end_(end: Long) { _end = end }
+
+  /** Get the starting sequence for a batch.
+   *
+   *  @return the starting sequence of a batch.
+   */
+  def getStart = _end - (size - 1L)
 }

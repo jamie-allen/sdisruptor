@@ -15,17 +15,15 @@
  */
 package com.jamieallen.sdisruptor
 
-/** EntryConsumers waitFor {@link AbstractEntry}s to become available for consumption from the {@link RingBuffer}
+/** Implementations translate a other data representations into {@link AbstractEntry}s claimed from the {@link RingBuffer}
+ *
+ *  @param <T> AbstractEntry implementation storing the data for sharing during exchange or parallel coordination of an event.
  */
-trait Consumer extends Runnable {
-  /** Get the sequence up to which this Consumer has consumed {@link AbstractEntry}s
-   *
-   *  @return the sequence of the last consumed {@link AbstractEntry}
-   */
-  def sequence: Long
-
-  /** Signal that this Consumer should stop when it has finished consuming at the next clean break.
-   *  It will call {@link ConsumerBarrier#alert()} to notify the thread to check status.
-   */
-  def halt()
+trait EntryTranslator[T <: AbstractEntry] {
+    /** Translate a data representation into fields set in given {@link AbstractEntry}
+     *
+     *  @param entry into which the data should be translated.
+     *  @return the resulting entry after it has been updated.
+     */
+    def translateTo(entry: T): T
 }

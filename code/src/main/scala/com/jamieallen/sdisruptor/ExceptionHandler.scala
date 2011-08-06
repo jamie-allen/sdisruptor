@@ -15,17 +15,16 @@
  */
 package com.jamieallen.sdisruptor
 
-/** EntryConsumers waitFor {@link AbstractEntry}s to become available for consumption from the {@link RingBuffer}
+/** Callback handler for uncaught exceptions in the {@link AbstractEntry} processing cycle of the {@link BatchConsumer}
  */
-trait Consumer extends Runnable {
-  /** Get the sequence up to which this Consumer has consumed {@link AbstractEntry}s
-   *
-   *  @return the sequence of the last consumed {@link AbstractEntry}
-   */
-  def sequence: Long
-
-  /** Signal that this Consumer should stop when it has finished consuming at the next clean break.
-   *  It will call {@link ConsumerBarrier#alert()} to notify the thread to check status.
-   */
-  def halt()
+trait ExceptionHandler {
+    /** Strategy for handling uncaught exceptions when processing an {@link AbstractEntry}.
+     *
+     *  If the strategy wishes to suspend further processing by the {@link BatchConsumer}
+     *  then is should throw a {@link RuntimeException}.
+     *
+     *  @param ex the exception that propagated from the {@link BatchHandler}
+     *  @param currentEntry being processed when the exception occurred.
+     */
+    def handle(ex: Exception, currentEntry: AbstractEntry)
 }

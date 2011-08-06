@@ -15,17 +15,14 @@
  */
 package com.jamieallen.sdisruptor
 
-/** EntryConsumers waitFor {@link AbstractEntry}s to become available for consumption from the {@link RingBuffer}
+/** Implement this interface to be notified when a thread for the {@link BatchConsumer} starts and shuts down.
  */
-trait Consumer extends Runnable {
-  /** Get the sequence up to which this Consumer has consumed {@link AbstractEntry}s
-   *
-   *  @return the sequence of the last consumed {@link AbstractEntry}
+trait LifecycleAware {
+  /** Called once on thread start before first entry is available.
    */
-  def sequence: Long
+  def onStart()
 
-  /** Signal that this Consumer should stop when it has finished consuming at the next clean break.
-   *  It will call {@link ConsumerBarrier#alert()} to notify the thread to check status.
+  /** Called once just before the thread is shutdown.
    */
-  def halt()
+  def onShutdown()
 }

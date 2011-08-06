@@ -42,7 +42,7 @@ public class RingBufferTest
     @Test
     public void shouldClaimAndGet() throws Exception
     {
-        assertEquals(RingBuffer.INITIAL_CURSOR_VALUE, ringBuffer.getCursor());
+        assertEquals(RingBuffer.InitialCursorValue, ringBuffer.getCursor());
 
         StubEntry expectedEntry = new StubEntry(2701);
 
@@ -62,7 +62,7 @@ public class RingBufferTest
     @Test
     public void shouldClaimAndGetWithTimeout() throws Exception
     {
-        assertEquals(RingBuffer.INITIAL_CURSOR_VALUE, ringBuffer.getCursor());
+        assertEquals(RingBuffer.InitialCursorValue, ringBuffer.getCursor());
 
         StubEntry expectedEntry = new StubEntry(2701);
 
@@ -84,7 +84,7 @@ public class RingBufferTest
     public void shouldGetWithTimeout() throws Exception
     {
         long sequence = consumerBarrier.waitFor(0, 5, TimeUnit.MILLISECONDS);
-        assertEquals(RingBuffer.INITIAL_CURSOR_VALUE, sequence);
+        assertEquals(RingBuffer.InitialCursorValue, sequence);
     }
 
     @Test
@@ -216,7 +216,7 @@ public class RingBufferTest
     private static final class TestConsumer implements Consumer
     {
         private final ConsumerBarrier<StubEntry> consumerBarrier;
-        private volatile long sequence = RingBuffer.INITIAL_CURSOR_VALUE;
+        private volatile long sequence = RingBuffer.InitialCursorValue;
 
         public TestConsumer(final ConsumerBarrier<StubEntry> consumerBarrier)
         {
