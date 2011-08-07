@@ -42,7 +42,7 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
   @volatile private var _cursor = RingBuffer.InitialCursorValue
   val p8, p9, p10, p11, p12, p13, p14: Long // cache line padding
 
-  val sizeAsPowerOfTwo = ceilingNextPowerOfTwo(size)
+  val sizeAsPowerOfTwo = Util.ceilingNextPowerOfTwo(size)
   var ringModMask = sizeAsPowerOfTwo - 1
   var entries: Array[AbstractEntry] = new Array[AbstractEntry](sizeAsPowerOfTwo)
 
@@ -116,22 +116,22 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
     entry.asInstanceOf[T]
   }
 
-  override def commit(entry: T) { commit(entry.sequence(), 1) }
+  override def commit(entry: T) { commit(entry.sequence, 1) }
 
   override def nextEntries(sequenceBatch: SequenceBatch): SequenceBatch = {
-    val sequence = claimStrategy.incrementAndGet(sequenceBatch.getSize())
-    sequenceBatch.setEnd(sequence);
+    val sequence = claimStrategy.incrementAndGet(sequenceBatch.size)
+    sequenceBatch.end_(sequence);
     ensureConsumersAreInRange(sequence);
 
-    for (i <- sequenceBatch.getStart() until sequenceBatch.getEnd()) {
-      AbstractEntry entry = entries(i.asInstanceOf[Int] & ringModMask)
+    for (i <- sequenceBatch.getStart until sequenceBatch.end) {
+      val entry = entries(i.asInstanceOf[Int] & ringModMask)
       entry.sequence_(i)
     }
 
     return sequenceBatch;
   }
 
-  override def commit(sequenceBatch: Object): Unit = { commit(sequenceBatch.getEnd(), sequenceBatch.getSize()) }
+  override def commit(sequenceBatch: SequenceBatch): Unit = { commit(sequenceBatch.end, sequenceBatch.size) }
 
   /** Claim a specific sequence in the {@link RingBuffer} when only one producer is involved.
    *
@@ -160,7 +160,8 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
   private def ensureConsumersAreInRange(sequence: Long) {
     val wrapPoint = sequence - entries.length;
     while (wrapPoint > lastTrackedConsumerMin &&
-           wrapPoint > (lastTrackedConsumerMin = Util.getMinimumSequence(consumersToTrack))) {
+           wrapPoint > Util.getMinimumSequence(_consumersToTrack)) {
+      lastTrackedConsumerMin = Util.getMinimumSequence(_consumersToTrack);
       Thread.`yield`()
     }
   }

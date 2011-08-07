@@ -18,11 +18,9 @@ package com.jamieallen.sdisruptor
 /** No operation version of a {@link Consumer} that simply tracks a {@link RingBuffer}.
  *  This is useful in tests or for pre-filling a {@link RingBuffer} from a producer.
  */
-class NoOpConsumer(ringBuffer: RingBuffer) extends Consumer {
+class NoOpConsumer[T](ringBuffer: RingBuffer[T]) extends Consumer {
 
-  override def sequence = ringBuffer.getCursor()
-
+  override def sequence = ringBuffer.cursor()
   override def halt() { }
-
   override def run() { }
 }

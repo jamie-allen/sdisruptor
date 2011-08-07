@@ -17,7 +17,7 @@ package com.jamieallen.sdisruptor
 
 object AlertException {
   /** Pre-allocated exception to avoid garbage generation */
-  val ALERT_EXCEPTION = new AlertException()
+  val alertException = new AlertException()
 }
 
 /** Used to alert consumers waiting at a {@link ConsumerBarrier} of status changes.

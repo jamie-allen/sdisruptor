@@ -43,14 +43,14 @@ object WaitStrategy {
     private val lock = new ReentrantLock()
     private val consumerNotifyCondition = lock.newCondition()
 
-  	override def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer[AbstractEntry], barrier: ConsumerBarrier, sequence: Long) = {
+  	override def waitFor[B](consumers: Array[Consumer], ringBuffer: RingBuffer[AbstractEntry], barrier: ConsumerBarrier[B], sequence: Long) = {
       var availableSequence: Long = ringBuffer.cursor
       if (availableSequence < sequence) {
         lock.lock()
         try {
           availableSequence = ringBuffer.cursor
           while (availableSequence < sequence) {
-            if (barrier.isAlerted) throw AlertException.ALERT_EXCEPTION;
+            if (barrier.isAlerted) throw AlertException.alertException;
             consumerNotifyCondition.await()
             availableSequence = ringBuffer.cursor
           }
@@ -61,7 +61,7 @@ object WaitStrategy {
       if (0 != consumers.length) {
         availableSequence = Util.getMinimumSequence(consumers)
         while (availableSequence < sequence) {
-          if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+          if (barrier.isAlerted) throw AlertException.alertException
           availableSequence = Util.getMinimumSequence(consumers)
         }
       }
@@ -69,7 +69,7 @@ object WaitStrategy {
       availableSequence
     }
 
-    override def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer, barrier: ConsumerBarrier, sequence: Long, timeout: Long, units: TimeUnits) = {
+    override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit) = {
       var availableSequence: Long = ringBuffer.cursor
       if (availableSequence < sequence) {
         lock.lock()
@@ -77,7 +77,7 @@ object WaitStrategy {
           availableSequence = ringBuffer.cursor
           breakable {
 	          while (availableSequence < sequence) {
-	            if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+	            if (barrier.isAlerted) throw AlertException.alertException
 	            if (!consumerNotifyCondition.await(timeout, units)) break
 	            availableSequence = ringBuffer.cursor
 	          }
@@ -89,7 +89,7 @@ object WaitStrategy {
       if (0 != consumers.length) {
         availableSequence = Util.getMinimumSequence(consumers)
         while (availableSequence < sequence) {
-          if (barrier.isAlerted()) throw ALERT_EXCEPTION
+          if (barrier.isAlerted) throw AlertException.alertException
           availableSequence = Util.getMinimumSequence(consumers)
         }
       }
@@ -107,20 +107,20 @@ object WaitStrategy {
   /** Optimised strategy can be used when there is a single producer thread claiming {@link AbstractEntry}s.
    */
   class BusySpinStrategy extends WaitStrategy {
-  	override def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer, barrier: ConsumerBarrier, sequence: Long) = {
+  	override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long) = {
       var availableSequence: Long = -1L
 
       if (0 == consumers.length) {
         availableSequence = ringBuffer.cursor
         while (availableSequence < sequence) {
-          if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+          if (barrier.isAlerted) throw AlertException.alertException
           availableSequence = ringBuffer.cursor
         }
       }
       else {
         availableSequence = Util.getMinimumSequence(consumers)
     		while (availableSequence < sequence) {
-    			if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+    			if (barrier.isAlerted) throw AlertException.alertException
     			availableSequence = Util.getMinimumSequence(consumers)
         }
       }
@@ -128,7 +128,7 @@ object WaitStrategy {
       availableSequence
     }
 
-    override def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer, barrier: ConsumerBarrier, sequence: Long, timeout: Long, units: TimeUnits) = {
+    override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit) = {
       val timeoutMs = units.convert(timeout, TimeUnit.MILLISECONDS)
       val currentTime = System.currentTimeMillis()
       var availableSequence: Long = -1L
@@ -137,7 +137,7 @@ object WaitStrategy {
         availableSequence = ringBuffer.cursor
         breakable {
 	        while (availableSequence < sequence) {
-	          if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+	          if (barrier.isAlerted) throw AlertException.alertException
 	          if (timeoutMs < (System.currentTimeMillis() - currentTime)) break
 	          availableSequence = ringBuffer.cursor
 	        }
@@ -147,7 +147,7 @@ object WaitStrategy {
         availableSequence = Util.getMinimumSequence(consumers)
         breakable {
 	        while (availableSequence < sequence) {
-	          if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+	          if (barrier.isAlerted) throw AlertException.alertException
 	          if (timeoutMs < (System.currentTimeMillis() - currentTime)) break
 	          availableSequence = Util.getMinimumSequence(consumers)
 	        }
@@ -165,13 +165,13 @@ object WaitStrategy {
    *  This strategy is a good compromise between performance and CPU resource.
    */
   class YieldingStrategy extends WaitStrategy {
-  	override def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer, barrier: ConsumerBarrier, sequence: Long) = {
+  	override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long) = {
       var availableSequence: Long = -1L
 
       if (0 == consumers.length) {
         availableSequence = ringBuffer.cursor
         while (availableSequence < sequence) {
-          if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+          if (barrier.isAlerted) throw AlertException.alertException
 
           Thread.`yield`()
           availableSequence = ringBuffer.cursor
@@ -180,7 +180,7 @@ object WaitStrategy {
       else {
         availableSequence = Util.getMinimumSequence(consumers)
         while (availableSequence < sequence) {
-          if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+          if (barrier.isAlerted) throw AlertException.alertException
 
           Thread.`yield`()
           availableSequence = Util.getMinimumSequence(consumers)
@@ -190,7 +190,7 @@ object WaitStrategy {
       availableSequence
     }
 
-    override def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer, barrier: ConsumerBarrier, sequence: Long, timeout: Long, units: TimeUnits) = {
+    override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit) = {
       val timeoutMs = units.convert(timeout, TimeUnit.MILLISECONDS)
       val currentTime = System.currentTimeMillis()
       var availableSequence: Long = -1L
@@ -199,7 +199,7 @@ object WaitStrategy {
         availableSequence = ringBuffer.cursor
         breakable {
 	        while (availableSequence < sequence) {
-	          if (barrier.isAlerted()) throw AlertException.ALERT_EXCEPTION
+	          if (barrier.isAlerted) throw AlertException.alertException
 	
 	          Thread.`yield`()
 	          if (timeoutMs < (System.currentTimeMillis() - currentTime)) break
@@ -208,14 +208,14 @@ object WaitStrategy {
         }
       }
       else {
-      	availableSequence = getMinimumSequence(consumers)
+      	availableSequence = Util.getMinimumSequence(consumers)
         breakable {
 	        while (availableSequence < sequence) {
-	          if (barrier.isAlerted()) throw ALERT_EXCEPTION
+	          if (barrier.isAlerted) throw AlertException.alertException
 	
 	          Thread.`yield`()
 	          if (timeoutMs < (System.currentTimeMillis() - currentTime)) break
-	          availableSequence = getMinimumSequence(consumers)
+	          availableSequence = Util.getMinimumSequence(consumers)
 	        }
       	}
       }
@@ -238,7 +238,7 @@ trait WaitStrategy {
    *  @param sequence to be waited on.
    *  @return the sequence that is available which may be greater than the requested sequence.
    */
-  def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer, barrier: ConsumerBarrier, sequence: Long): Long
+  def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long): Long
 
   /** Wait for the given sequence to be available for consumption in a {@link RingBuffer} with a timeout specified.
    *
@@ -250,7 +250,7 @@ trait WaitStrategy {
    *  @param units of the timeout value.
    *  @return the sequence that is available which may be greater than the requested sequence.
    */
-  def waitFor(consumers: Array[Consumer], ringBuffer: RingBuffer, barrier: ConsumerBarrier, sequence: Long, timeout: Long, units: TimeUnits): Long
+  def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit): Long
 
   /** Signal those waiting that the {@link RingBuffer} cursor has advanced.
    */
