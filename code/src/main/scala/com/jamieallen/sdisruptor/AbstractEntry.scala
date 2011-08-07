@@ -17,7 +17,7 @@ package com.jamieallen.sdisruptor
 
 /** Base implementation that must be extended for {@link RingBuffer} entries.
  */
-trait AbstractEntry {
+abstract class AbstractEntry {
   var _sequence: Long
   
   def sequence: Long = sequence

@@ -24,6 +24,7 @@ import org.junit.Test;
 import com.jamieallen.sdisruptor.BatchConsumer;
 import com.jamieallen.sdisruptor.ConsumerBarrier;
 import com.jamieallen.sdisruptor.RingBuffer;
+import com.jamieallen.sdisruptor.SequenceTrackerCallback;
 import com.jamieallen.sdisruptor.SequenceTrackingHandler;
 import com.lmax.disruptor.support.StubEntry;
 
@@ -61,10 +62,10 @@ public class BatchConsumerSequenceTrackingCallbackTest
 
     private class TestSequenceTrackingHandler implements SequenceTrackingHandler<StubEntry>
     {
-        private BatchConsumer.SequenceTrackerCallback sequenceTrackerCallback;
+        private SequenceTrackerCallback sequenceTrackerCallback;
 
         @Override
-        public void setSequenceTrackerCallback(final BatchConsumer.SequenceTrackerCallback sequenceTrackerCallback)
+        public void setSequenceTrackerCallback(final SequenceTrackerCallback sequenceTrackerCallback)
         {
             this.sequenceTrackerCallback = sequenceTrackerCallback;
         }
@@ -72,7 +73,7 @@ public class BatchConsumerSequenceTrackingCallbackTest
         @Override
         public void onAvailable(final StubEntry entry) throws Exception
         {
-            sequenceTrackerCallback.onCompleted(entry.getSequence());
+            sequenceTrackerCallback.onCompleted(entry.sequence());
             callbackLatch.countDown();
         }
 
