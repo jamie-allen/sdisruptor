@@ -23,16 +23,16 @@ package com.jamieallen.sdisruptor
  *
  *  @param <T> Entry implementation storing the data for sharing during exchange or parallel coordination of an event.
  */
-class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], handler: BatchHandler[T]) extends Consumer {
-  var p1, p2, p3, p4, p5, p6, p7: Long  // cache line padding
-  var p8, p9, p10, p11, p12, p13, p14: Long // cache line padding
+class BatchConsumer[A <: AbstractEntry](consumerBarrier: ConsumerBarrier[A], handler: BatchHandler[A]) extends Consumer {
+  var p1, p2, p3, p4, p5, p6, p7: Long = -1L  // cache line padding
+  var p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
   @volatile private var _sequence: Long = RingBuffer.InitialCursorValue
 
   private var _exceptionHandler: ExceptionHandler = new FatalExceptionHandler(None)
   @volatile private var running = true
 
-  if (handler.isInstanceOf[SequenceTrackingHandler[T]]) 
-    handler.asInstanceOf[SequenceTrackingHandler[T]].setSequenceTrackerCallback(new SequenceTrackerCallback(this))
+  if (handler.isInstanceOf[SequenceTrackingHandler[A]]) 
+    handler.asInstanceOf[SequenceTrackingHandler[A]].setSequenceTrackerCallback(new SequenceTrackerCallback(this))
 
   override def sequence: Long = _sequence
   override def sequence_(newSequence: Long) { _sequence = newSequence }
@@ -59,7 +59,7 @@ class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], han
     running = true;
     if (classOf[LifecycleAware].isAssignableFrom(handler.getClass())) handler.asInstanceOf[LifecycleAware].onStart()
 
-    var entry = null.asInstanceOf[T]
+    var entry = null.asInstanceOf[A]
     var nextSequence: Long = sequence + 1
     while (running) {
       try {

@@ -22,10 +22,10 @@ package com.jamieallen.sdisruptor
  *  </p>
  *  @param <T> AbstractEntry implementation storing the data for sharing during exchange or parallel coordination of an event.
  */
-trait SequenceTrackingHandler[T <: AbstractEntry] extends BatchHandler[T] {
+trait SequenceTrackingHandler[A <: AbstractEntry] extends BatchHandler[A] {
     /** Call by the {@link BatchConsumer} to setup the callback.
      *
      *  @param sequenceTrackerCallback callback on which to notify the {@link BatchConsumer} that the sequence has progressed.
      */
-    def setSequenceTrackerCallback[A](sequenceTrackerCallback: SequenceTrackerCallback[A])
+    def setSequenceTrackerCallback[A <: AbstractEntry](sequenceTrackerCallback: SequenceTrackerCallback[A])
 }

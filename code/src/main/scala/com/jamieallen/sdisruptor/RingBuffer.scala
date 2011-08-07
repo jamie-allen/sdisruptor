@@ -38,16 +38,16 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
   if (waitStrategyOption.isEmpty) waitStrategyOption = Some(WaitStrategy.Blocking)
 
 
-  val p1, p2, p3, p4, p5, p6, p7: Long // cache line padding
+  val p1, p2, p3, p4, p5, p6, p7: Long = -1L // cache line padding
   @volatile private var _cursor = RingBuffer.InitialCursorValue
-  val p8, p9, p10, p11, p12, p13, p14: Long // cache line padding
+  val p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
 
   val sizeAsPowerOfTwo = Util.ceilingNextPowerOfTwo(size)
   var ringModMask = sizeAsPowerOfTwo - 1
   var entries: Array[AbstractEntry] = new Array[AbstractEntry](sizeAsPowerOfTwo)
 
   var lastTrackedConsumerMin = RingBuffer.InitialCursorValue
-  var _consumersToTrack: Array[Consumer]
+  var _consumersToTrack = Array[Consumer]()
 
   var claimStrategy: ClaimStrategy = ClaimStrategy.newInstance(claimStrategyOption.get)
   var waitStrategy: WaitStrategy = WaitStrategy.newInstance(waitStrategyOption.get)
@@ -152,7 +152,7 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
    *  @param entry to be committed back to the {@link RingBuffer}
    */
   def commitWithForce(entry: T) {
-    claimStrategy.setSequence(entry.sequence)
+    claimStrategy.sequence_(entry.sequence)
     _cursor = entry.sequence
     waitStrategy.signalAll()
   }
@@ -167,7 +167,7 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
   }
 
   private def commit(sequence: Long, batchSize: Long) {
-    if (ClaimStrategy.MultiThreaded == claimStrategyOption) {
+    if (ClaimStrategy.MultiThreaded == claimStrategyOption.get) {
       val expectedSequence = sequence - batchSize
       var counter = 1000
       while (expectedSequence != cursor) {

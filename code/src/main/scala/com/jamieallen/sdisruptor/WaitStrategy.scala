@@ -43,7 +43,7 @@ object WaitStrategy {
     private val lock = new ReentrantLock()
     private val consumerNotifyCondition = lock.newCondition()
 
-  	override def waitFor[B](consumers: Array[Consumer], ringBuffer: RingBuffer[AbstractEntry], barrier: ConsumerBarrier[B], sequence: Long) = {
+    override def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long) = {
       var availableSequence: Long = ringBuffer.cursor
       if (availableSequence < sequence) {
         lock.lock()
@@ -69,7 +69,7 @@ object WaitStrategy {
       availableSequence
     }
 
-    override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit) = {
+    override def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long, timeout: Long, units: TimeUnit) = {
       var availableSequence: Long = ringBuffer.cursor
       if (availableSequence < sequence) {
         lock.lock()
@@ -107,7 +107,7 @@ object WaitStrategy {
   /** Optimised strategy can be used when there is a single producer thread claiming {@link AbstractEntry}s.
    */
   class BusySpinStrategy extends WaitStrategy {
-  	override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long) = {
+  	override def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long) = {
       var availableSequence: Long = -1L
 
       if (0 == consumers.length) {
@@ -128,7 +128,7 @@ object WaitStrategy {
       availableSequence
     }
 
-    override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit) = {
+    override def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long, timeout: Long, units: TimeUnit) = {
       val timeoutMs = units.convert(timeout, TimeUnit.MILLISECONDS)
       val currentTime = System.currentTimeMillis()
       var availableSequence: Long = -1L
@@ -165,7 +165,7 @@ object WaitStrategy {
    *  This strategy is a good compromise between performance and CPU resource.
    */
   class YieldingStrategy extends WaitStrategy {
-  	override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long) = {
+  	override def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long) = {
       var availableSequence: Long = -1L
 
       if (0 == consumers.length) {
@@ -190,7 +190,7 @@ object WaitStrategy {
       availableSequence
     }
 
-    override def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit) = {
+    override def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long, timeout: Long, units: TimeUnit) = {
       val timeoutMs = units.convert(timeout, TimeUnit.MILLISECONDS)
       val currentTime = System.currentTimeMillis()
       var availableSequence: Long = -1L
@@ -238,7 +238,7 @@ trait WaitStrategy {
    *  @param sequence to be waited on.
    *  @return the sequence that is available which may be greater than the requested sequence.
    */
-  def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long): Long
+  def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long): Long
 
   /** Wait for the given sequence to be available for consumption in a {@link RingBuffer} with a timeout specified.
    *
@@ -250,7 +250,7 @@ trait WaitStrategy {
    *  @param units of the timeout value.
    *  @return the sequence that is available which may be greater than the requested sequence.
    */
-  def waitFor[A, B](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[B], sequence: Long, timeout: Long, units: TimeUnit): Long
+  def waitFor[A <: AbstractEntry](consumers: Array[Consumer], ringBuffer: RingBuffer[A], barrier: ConsumerBarrier[A], sequence: Long, timeout: Long, units: TimeUnit): Long
 
   /** Signal those waiting that the {@link RingBuffer} cursor has advanced.
    */

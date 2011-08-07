@@ -63,12 +63,6 @@
             <src path="${dir.main.scala.src}"/>
             <include name="**/*.scala"/>
         </scalac>
-        <javac destdir="${dir.main.build}"
-             includeAntRuntime="false"
-             debug="true"
-             nowarn="true">
-            <src path="${dir.main.java.src}"/>
-        </javac>
     </target>
 
     <target name="test"

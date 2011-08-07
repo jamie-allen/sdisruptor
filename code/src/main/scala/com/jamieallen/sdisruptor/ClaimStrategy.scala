@@ -43,7 +43,7 @@ object ClaimStrategy {
       _sequence
     }
 
-    override def setSequence(sequence: Long) { _sequence = sequence }
+    override def sequence_(sequence: Long) { _sequence = sequence }
   }
 	
   /** Strategy to be used when there are multiple producer threads claiming {@link AbstractEntry}s.
@@ -77,5 +77,5 @@ trait ClaimStrategy {
    *
    *  @param sequence to be set as the current value.
    */
-  def setSequence(sequence: Long)
+  def sequence_(sequence: Long)
 }
