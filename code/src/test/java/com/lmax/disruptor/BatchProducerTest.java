@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,16 @@
  */
 package com.lmax.disruptor;
 
-import com.lmax.disruptor.support.StubEntry;
-import org.junit.Test;
-
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
+
+import com.jamieallen.sdisruptor.ConsumerBarrier;
+import com.jamieallen.sdisruptor.NoOpConsumer;
+import com.jamieallen.sdisruptor.RingBuffer;
+import com.jamieallen.sdisruptor.SequenceBatch;
+import com.lmax.disruptor.support.StubEntry;
 
 public final class BatchProducerTest
 {

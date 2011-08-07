@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package com.lmax.disruptor;
 
-import com.jamieallen.sdisruptor.AbstractEntry;
-import com.lmax.disruptor.support.TestEntry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
@@ -24,8 +25,10 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.jamieallen.sdisruptor.AbstractEntry;
+import com.jamieallen.sdisruptor.ExceptionHandler;
+import com.jamieallen.sdisruptor.IgnoreExceptionHandler;
+import com.lmax.disruptor.support.TestEntry;
 
 @RunWith(JMock.class)
 public final class IgnoreExceptionHandlerTest

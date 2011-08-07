@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,19 @@
  */
 package com.lmax.disruptor;
 
-import com.lmax.disruptor.support.StubEntry;
-import org.junit.Test;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.CountDownLatch;
 
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
+
+import com.jamieallen.sdisruptor.BatchConsumer;
+import com.jamieallen.sdisruptor.BatchHandler;
+import com.jamieallen.sdisruptor.ConsumerBarrier;
+import com.jamieallen.sdisruptor.LifecycleAware;
+import com.jamieallen.sdisruptor.RingBuffer;
+import com.lmax.disruptor.support.StubEntry;
 
 public final class LifecycleAwareTest
 {

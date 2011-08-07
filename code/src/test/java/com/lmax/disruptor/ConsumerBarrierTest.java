@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,13 +22,19 @@ import static org.junit.Assert.assertTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.lmax.disruptor.support.StubEntry;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.action.DoAllAction;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import com.jamieallen.sdisruptor.AlertException;
+import com.jamieallen.sdisruptor.Consumer;
+import com.jamieallen.sdisruptor.ConsumerBarrier;
+import com.jamieallen.sdisruptor.NoOpConsumer;
+import com.jamieallen.sdisruptor.RingBuffer;
+import com.lmax.disruptor.support.StubEntry;
 
 
 @RunWith(JMock.class)

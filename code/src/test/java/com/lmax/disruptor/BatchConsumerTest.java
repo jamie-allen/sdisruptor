@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  */
 package com.lmax.disruptor;
 
-import com.lmax.disruptor.support.StubEntry;
+import static com.lmax.disruptor.support.Actions.countDown;
+import static org.junit.Assert.assertEquals;
+
+import java.util.concurrent.CountDownLatch;
+
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -26,10 +30,12 @@ import org.jmock.integration.junit4.JMock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.CountDownLatch;
-
-import static com.lmax.disruptor.support.Actions.countDown;
-import static org.junit.Assert.assertEquals;
+import com.jamieallen.sdisruptor.BatchConsumer;
+import com.jamieallen.sdisruptor.BatchHandler;
+import com.jamieallen.sdisruptor.ConsumerBarrier;
+import com.jamieallen.sdisruptor.ExceptionHandler;
+import com.jamieallen.sdisruptor.RingBuffer;
+import com.lmax.disruptor.support.StubEntry;
 
 @RunWith(JMock.class)
 public final class BatchConsumerTest

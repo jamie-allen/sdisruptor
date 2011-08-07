@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,30 @@
  */
 package com.lmax.disruptor;
 
-import com.jamieallen.sdisruptor.collections.Histogram;
-import com.lmax.disruptor.support.*;
-import org.junit.Test;
-
-import java.io.PrintStream;
-import java.math.BigDecimal;
-import java.util.concurrent.*;
-
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+
+import java.io.PrintStream;
+import java.math.BigDecimal;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import org.junit.Test;
+
+import com.jamieallen.sdisruptor.BatchConsumer;
+import com.jamieallen.sdisruptor.ClaimStrategy;
+import com.jamieallen.sdisruptor.ConsumerBarrier;
+import com.jamieallen.sdisruptor.RingBuffer;
+import com.jamieallen.sdisruptor.WaitStrategy;
+import com.jamieallen.sdisruptor.collections.Histogram;
+import com.lmax.disruptor.support.FunctionStep;
+import com.lmax.disruptor.support.LatencyStepHandler;
+import com.lmax.disruptor.support.LatencyStepQueueConsumer;
+import com.lmax.disruptor.support.ValueEntry;
 
 /**
  * <pre>

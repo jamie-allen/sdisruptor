@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 package com.lmax.disruptor.support;
 
 import com.jamieallen.sdisruptor.AbstractEntry;
-import com.lmax.disruptor.EntryFactory;
+import com.jamieallen.sdisruptor.EntryFactory;
 
 public final class StubEntry extends AbstractEntry
 {

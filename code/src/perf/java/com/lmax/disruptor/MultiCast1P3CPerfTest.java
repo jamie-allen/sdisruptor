@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,24 @@
  */
 package com.lmax.disruptor;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.jamieallen.sdisruptor.BatchConsumer;
+import com.jamieallen.sdisruptor.ClaimStrategy;
+import com.jamieallen.sdisruptor.ConsumerBarrier;
+import com.jamieallen.sdisruptor.RingBuffer;
+import com.jamieallen.sdisruptor.Util;
+import com.jamieallen.sdisruptor.WaitStrategy;
 import com.lmax.disruptor.support.Operation;
 import com.lmax.disruptor.support.ValueEntry;
 import com.lmax.disruptor.support.ValueMutationHandler;
 import com.lmax.disruptor.support.ValueMutationQueueConsumer;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.concurrent.*;
 
 /**
  * <pre>

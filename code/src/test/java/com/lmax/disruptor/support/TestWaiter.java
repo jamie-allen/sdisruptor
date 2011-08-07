@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 LMAX Ltd.
+ * Copyright 2011 LMAX Ltd., modified by Jamie Allen to use Scala port.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package com.lmax.disruptor.support;
 
-import com.lmax.disruptor.ConsumerBarrier;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
+
+import com.jamieallen.sdisruptor.ConsumerBarrier;
 
 public final class TestWaiter implements Callable<List<StubEntry>>
 {
