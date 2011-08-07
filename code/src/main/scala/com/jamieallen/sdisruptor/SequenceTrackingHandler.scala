@@ -27,5 +27,5 @@ trait SequenceTrackingHandler[T <: AbstractEntry] extends BatchHandler[T] {
      *
      *  @param sequenceTrackerCallback callback on which to notify the {@link BatchConsumer} that the sequence has progressed.
      */
-    def setSequenceTrackerCallback(sequenceTrackerCallback: BatchConsumer.SequenceTrackerCallback)
+    def setSequenceTrackerCallback[A](sequenceTrackerCallback: SequenceTrackerCallback[A])
 }

@@ -23,6 +23,7 @@ trait Consumer extends Runnable {
    *  @return the sequence of the last consumed {@link AbstractEntry}
    */
   def sequence: Long
+  def sequence_(newSequence: Long)
 
   /** Signal that this Consumer should stop when it has finished consuming at the next clean break.
    *  It will call {@link ConsumerBarrier#alert()} to notify the thread to check status.

@@ -32,9 +32,11 @@ class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], han
   @volatile private var running = true
 
   if (handler.isInstanceOf[SequenceTrackingHandler[T]]) 
-    handler.asInstanceOf[SequenceTrackingHandler[T]].setSequenceTrackerCallback(new SequenceTrackerCallback())
+    handler.asInstanceOf[SequenceTrackingHandler[T]].setSequenceTrackerCallback(new SequenceTrackerCallback(this))
 
   override def sequence: Long = _sequence
+  override def sequence_(newSequence: Long) { _sequence = newSequence }
+  
   override def halt() {
     running = false
     consumerBarrier.alert
@@ -82,15 +84,5 @@ class BatchConsumer[T <: AbstractEntry](consumerBarrier: ConsumerBarrier[T], han
     }
 
     if (classOf[LifecycleAware].isAssignableFrom(handler.getClass())) handler.asInstanceOf[LifecycleAware].onShutdown()
-  }
-
-  /** Used by the {@link BatchHandler} to signal when it has completed consuming a given sequence.
-   */
-  class SequenceTrackerCallback {
-    /** Notify that the handler has consumed up to a given sequence.
-     *
-     *  @param sequence that has been consumed.
-     */
-    def onCompleted(sequence: Long) { BatchConsumer.this._sequence = sequence }
   }
 }
