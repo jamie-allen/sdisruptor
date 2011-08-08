@@ -35,8 +35,8 @@ public final class LifecycleAwareTest
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
 
 
-    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16);
-    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier();
+    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16, null, null);
+    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.consumersToTrack_();
     private final LifecycleAwareBatchHandler handler = new LifecycleAwareBatchHandler();
     private final BatchConsumer batchConsumer = new BatchConsumer<StubEntry>(consumerBarrier, handler);
 
@@ -60,12 +60,12 @@ public final class LifecycleAwareTest
         private int shutdownCounter = 0;
 
         @Override
-        public void onAvailable(final StubEntry entry) throws Exception
+        public void onAvailable(final StubEntry entry)
         {
         }
 
         @Override
-        public void onEndOfBatch() throws Exception
+        public void onEndOfBatch()
         {
         }
 

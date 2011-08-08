@@ -20,8 +20,8 @@ import java.util.logging.{Level, Logger}
 /** Convenience implementation of an exception handler that using standard JDK logging to log
  *  the exception as {@link Level}.SEVERE and re-throw it wrapped in a {@link RuntimeException}
  */
-class FatalExceptionHandler(newLogger: Option[Logger]) extends ExceptionHandler {
-  val logger: Logger = if (newLogger.isDefined) newLogger.get 
+class FatalExceptionHandler(newLogger: Logger) extends ExceptionHandler {
+  val logger: Logger = if (newLogger != null) newLogger
   											else Logger.getLogger(classOf[FatalExceptionHandler].getName())
 
   override def handle(ex: Exception, currentEntry: AbstractEntry) { 

@@ -28,10 +28,10 @@ import com.lmax.disruptor.support.StubEntry;
 
 public final class BatchProducerTest
 {
-    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 20);
-    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier();
+    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 20, null, null);
+    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new ConsumerBarrier<StubEntry>());
     {
-        ringBuffer.setTrackedConsumers(new NoOpConsumer(ringBuffer));
+        ringBuffer.consumersToTrack_(new NoOpConsumer(ringBuffer));
     }
 
     @Test
@@ -43,12 +43,12 @@ public final class BatchProducerTest
         ringBuffer.nextEntries(sequenceBatch);
 
         assertThat(Long.valueOf(sequenceBatch.getStart()), is(Long.valueOf(0L)));
-        assertThat(Long.valueOf(sequenceBatch.getEnd()), is(Long.valueOf(4L)));
-        assertThat(Long.valueOf(ringBuffer.getCursor()), is(Long.valueOf(-1L)));
+        assertThat(Long.valueOf(sequenceBatch.end()), is(Long.valueOf(4L)));
+        assertThat(Long.valueOf(ringBuffer.cursor()), is(Long.valueOf(-1L)));
 
         ringBuffer.commit(sequenceBatch);
 
-        assertThat(Long.valueOf(ringBuffer.getCursor()), is(Long.valueOf(batchSize - 1L)));
+        assertThat(Long.valueOf(ringBuffer.cursor()), is(Long.valueOf(batchSize - 1L)));
         assertThat(Long.valueOf(consumerBarrier.waitFor(0L)), is(Long.valueOf(batchSize - 1L)));
     }
 }

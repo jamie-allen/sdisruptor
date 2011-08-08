@@ -32,10 +32,10 @@ object RingBuffer {
  */
 class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T], 
     								size: Int,
-                    var claimStrategyOption: Option[Symbol],
-                    var waitStrategyOption: Option[Symbol]) extends ProducerBarrier[T] {
-  if (claimStrategyOption.isEmpty) claimStrategyOption = Some(ClaimStrategy.MultiThreaded)
-  if (waitStrategyOption.isEmpty) waitStrategyOption = Some(WaitStrategy.Blocking)
+                    var claimStrategyOption: Symbol,
+                    var waitStrategyOption: Symbol) extends ProducerBarrier[T] {
+  if (claimStrategyOption == null) claimStrategyOption = ClaimStrategy.MultiThreaded
+  if (waitStrategyOption == null) waitStrategyOption = WaitStrategy.Blocking
 
 
   val p1, p2, p3, p4, p5, p6, p7: Long = -1L // cache line padding
@@ -44,13 +44,15 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
 
   val sizeAsPowerOfTwo = Util.ceilingNextPowerOfTwo(size)
   var ringModMask = sizeAsPowerOfTwo - 1
-  var entries: Array[AbstractEntry] = new Array[AbstractEntry](sizeAsPowerOfTwo)
+  var entries: Array[T] = getNewArray(sizeAsPowerOfTwo)
 
+  def getNewArray[T](size: Int)(implicit m: ClassManifest[T]): Array[T] = new Array[T](size)
+  
   var lastTrackedConsumerMin = RingBuffer.InitialCursorValue
   var _consumersToTrack = Array[Consumer]()
 
-  var claimStrategy: ClaimStrategy = ClaimStrategy.newInstance(claimStrategyOption.get)
-  var waitStrategy: WaitStrategy = WaitStrategy.newInstance(waitStrategyOption.get)
+  var claimStrategy: ClaimStrategy = ClaimStrategy.newInstance(claimStrategyOption)
+  var waitStrategy: WaitStrategy = WaitStrategy.newInstance(waitStrategyOption)
 
   fill(entryFactory);
 
@@ -167,7 +169,7 @@ class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T],
   }
 
   private def commit(sequence: Long, batchSize: Long) {
-    if (ClaimStrategy.MultiThreaded == claimStrategyOption.get) {
+    if (ClaimStrategy.MultiThreaded == claimStrategyOption) {
       val expectedSequence = sequence - batchSize
       var counter = 1000
       while (expectedSequence != cursor) {

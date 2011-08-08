@@ -45,23 +45,23 @@ public final class BatchConsumerTest
     private final CountDownLatch latch = new CountDownLatch(1);
 
     private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16);
-    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier();
+    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new ConsumerBarrier<StubEntry>[0]);
     @SuppressWarnings("unchecked") private final BatchHandler<StubEntry> batchHandler = context.mock(BatchHandler.class);
     private final BatchConsumer batchConsumer = new BatchConsumer<StubEntry>(consumerBarrier, batchHandler);
     {
-        ringBuffer.setTrackedConsumers(batchConsumer);
+        ringBuffer.consumersToTrack_(batchConsumer);
     }
 
     @Test(expected = NullPointerException.class)
     public void shouldThrowExceptionOnSettingNullExceptionHandler()
     {
-        batchConsumer.setExceptionHandler(null);
+        batchConsumer.exceptionHandler_(null);
     }
 
     @Test
     public void shouldReturnUnderlyingBarrier()
     {
-        assertEquals(consumerBarrier, batchConsumer.getConsumerBarrier());
+        assertEquals(consumerBarrier, batchConsumer.consumerBarrier());
     }
 
     @Test
@@ -71,7 +71,7 @@ public final class BatchConsumerTest
         context.checking(new Expectations()
         {
             {
-                oneOf(batchHandler).onAvailable(ringBuffer.getEntry(0));
+                oneOf(batchHandler).onAvailable(ringBuffer.entry(0));
                 inSequence(lifecycleSequence);
 
                 oneOf(batchHandler).onEndOfBatch();
@@ -83,9 +83,9 @@ public final class BatchConsumerTest
         Thread thread = new Thread(batchConsumer);
         thread.start();
 
-        assertEquals(-1L, batchConsumer.getSequence());
+        assertEquals(-1L, batchConsumer.sequence());
 
-        ringBuffer.commit(ringBuffer.nextEntry());
+        ringBuffer.commit(ringBuffer.entry());
 
         latch.await();
 
@@ -100,11 +100,11 @@ public final class BatchConsumerTest
         context.checking(new Expectations()
         {
             {
-                oneOf(batchHandler).onAvailable(ringBuffer.getEntry(0));
+                oneOf(batchHandler).onAvailable(ringBuffer.entry(0));
                 inSequence(lifecycleSequence);
-                oneOf(batchHandler).onAvailable(ringBuffer.getEntry(1));
+                oneOf(batchHandler).onAvailable(ringBuffer.entry(1));
                 inSequence(lifecycleSequence);
-                oneOf(batchHandler).onAvailable(ringBuffer.getEntry(2));
+                oneOf(batchHandler).onAvailable(ringBuffer.entry(2));
                 inSequence(lifecycleSequence);
 
                 oneOf(batchHandler).onEndOfBatch();
@@ -132,12 +132,12 @@ public final class BatchConsumerTest
     {
         final Exception ex = new Exception();
         final ExceptionHandler exceptionHandler = context.mock(ExceptionHandler.class);
-        batchConsumer.setExceptionHandler(exceptionHandler);
+        batchConsumer.exceptionHandler_(exceptionHandler);
 
         context.checking(new Expectations()
         {
             {
-                oneOf(batchHandler).onAvailable(ringBuffer.getEntry(0));
+                oneOf(batchHandler).onAvailable(ringBuffer.entry(0));
                 inSequence(lifecycleSequence);
                 will(new Action()
                 {
@@ -154,7 +154,7 @@ public final class BatchConsumerTest
                     }
                 });
 
-                oneOf(exceptionHandler).handle(ex, ringBuffer.getEntry(0));
+                oneOf(exceptionHandler).handle(ex, ringBuffer.entry(0));
                 inSequence(lifecycleSequence);
                 will(countDown(latch));
             }

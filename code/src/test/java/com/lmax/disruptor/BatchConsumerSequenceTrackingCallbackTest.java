@@ -37,24 +37,24 @@ public class BatchConsumerSequenceTrackingCallbackTest
     public void shouldReportProgressByUpdatingSequenceViaCallback()
         throws Exception
     {
-        final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16);
-        final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier();
+        final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16, null, null);
+        final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new ConsumerBarrier<StubEntry>[0]);
         final SequenceTrackingHandler<StubEntry> handler = new TestSequenceTrackingHandler();
         final BatchConsumer<StubEntry> batchConsumer = new BatchConsumer<StubEntry>(consumerBarrier, handler);
-        ringBuffer.setTrackedConsumers(batchConsumer);
+        ringBuffer.consumersToTrack_(batchConsumer);
 
         Thread thread = new Thread(batchConsumer);
         thread.setDaemon(true);
         thread.start();
 
-        assertEquals(-1L, batchConsumer.getSequence());
+        assertEquals(-1L, batchConsumer.sequence());
         ringBuffer.commit(ringBuffer.nextEntry());
 
         callbackLatch.await();
-        assertEquals(0L, batchConsumer.getSequence());
+        assertEquals(0L, batchConsumer.sequence());
 
         onEndOfBatchLatch.countDown();
-        assertEquals(0L, batchConsumer.getSequence());
+        assertEquals(0L, batchConsumer.sequence());
 
         batchConsumer.halt();
         thread.join();
@@ -71,14 +71,14 @@ public class BatchConsumerSequenceTrackingCallbackTest
         }
 
         @Override
-        public void onAvailable(final StubEntry entry) throws Exception
+        public void onAvailable(final StubEntry entry)
         {
             sequenceTrackerCallback.onCompleted(entry.sequence());
             callbackLatch.countDown();
         }
 
         @Override
-        public void onEndOfBatch() throws Exception
+        public void onEndOfBatch()
         {
             onEndOfBatchLatch.await();
         }

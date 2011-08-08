@@ -21,8 +21,8 @@ import java.util.logging.Logger;
 /** Convenience implementation of an exception handler that using standard JDK logging to log
  *  the exception as {@link Level}.INFO
  */
-class IgnoreExceptionHandler(newLogger: Option[Logger]) extends ExceptionHandler {
-  val logger: Logger = if (newLogger.isDefined) newLogger.get 
+class IgnoreExceptionHandler(newLogger: Logger) extends ExceptionHandler {
+  val logger: Logger = if (newLogger != null) newLogger 
   											else Logger.getLogger(classOf[FatalExceptionHandler].getName())
 
   override def handle(ex: Exception, currentEntry: AbstractEntry) { 
