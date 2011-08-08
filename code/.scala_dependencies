@@ -69,11 +69,17 @@
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/FatalExceptionHandler.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/AbstractEntry.scala
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/FatalExceptionHandler.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/FatalExceptionHandler.scala
 -------
+/Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/RingBuffer.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/RingBuffer$$anonfun$nextEntries$1.class
+/Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/RingBuffer.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/RingBuffer.class
+/Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/RingBuffer.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/RingBuffer$ConsumerTrackingConsumerBarrier.class
+/Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/RingBuffer.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/RingBuffer$.class
+/Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/RingBuffer.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/RingBuffer$$anonfun$fill$1.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/ExceptionHandler.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/ExceptionHandler.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/ConsumerBarrier.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/ConsumerBarrier.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/AlertException.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/AlertException$.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/AlertException.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/AlertException.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/EntryFactory.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/EntryFactory.class
+/Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/IgnoreExceptionHandler.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/IgnoreExceptionHandler.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/Consumer.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/Consumer.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/LifecycleAware.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/LifecycleAware.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/ProducerBarrier.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/ProducerBarrier.class
@@ -111,3 +117,4 @@
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/collections/Histogram.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/collections/Histogram$$anonfun$getUpperBoundForFactor$1.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/collections/Histogram.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/collections/Histogram$$anonfun$clear$1.class
 /Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/collections/Histogram.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/collections/Histogram$$anonfun$toString$1.class
+/Users/jallen/sandbox/disruptor/sdisruptor/code/src/main/scala/com/jamieallen/sdisruptor/FatalExceptionHandler.scala -> /Users/jallen/sandbox/disruptor/sdisruptor/code/bin/com/jamieallen/sdisruptor/FatalExceptionHandler.class

@@ -30,7 +30,7 @@ object RingBuffer {
  *  @param claimStrategyOption threading strategy for producers claiming {@link AbstractEntry}s in the ring.
  *  @param waitStrategyOption waiting strategy employed by consumersToTrack waiting on {@link AbstractEntry}s becoming available.
  */
-class RingBuffer[T <: AbstractEntry](entryFactory: EntryFactory[T], 
+class RingBuffer[T <: AbstractEntry : ClassManifest](entryFactory: EntryFactory[T], 
     								size: Int,
                     var claimStrategyOption: Symbol,
                     var waitStrategyOption: Symbol) extends ProducerBarrier[T] {
