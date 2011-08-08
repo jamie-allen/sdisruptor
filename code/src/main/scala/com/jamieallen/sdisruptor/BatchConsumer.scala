@@ -25,10 +25,10 @@ package com.jamieallen.sdisruptor
  */
 class BatchConsumer[A <: AbstractEntry](consumerBarrier: ConsumerBarrier[A], handler: BatchHandler[A]) extends Consumer {
   var p1, p2, p3, p4, p5, p6, p7: Long = -1L  // cache line padding
-  var p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
   @volatile private var _sequence: Long = RingBuffer.InitialCursorValue
+  var p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
 
-  private var _exceptionHandler: ExceptionHandler = new FatalExceptionHandler(None)
+  private var _exceptionHandler: ExceptionHandler = new FatalExceptionHandler(null)
   @volatile private var running = true
 
   if (handler.isInstanceOf[SequenceTrackingHandler[A]]) 

@@ -13,7 +13,7 @@ The reuse of array buffers guarantees no GC of mature objects, thus no global GC
 GC: Latency occurs as those objects are copied between generations, which is minimized by reusing objects so that they only traverse the generations once
 GC: Restart the machine every day to clear the heap, guarantee no compaction (can go 3-4 days without worrying about it, but this is a safety measure)
 The sequential nature of the ring buffer allows you to introduce dependencies between processes that need something to happen before they move on
-The "ring" characteristics of the array buffer promote resequencing - you never stop traversing the queue
+The "ring" characteristics of the array buffer promote resequencing - you never stop traversing the queue 
 By limiting GC and handling data in a single-threaded model that maximizes on-board cache speed, LMAX gets tremendous throughput
 Note that the key is BALANCED FLOW - if your flow is unbalanced, you need to weigh the cost of losing local L3 cache with the reuse of cores
 Sequencing of data in main memory is also important - as the core understands your usage of data from memory, it can pre-load the cache with data it knows you need next
@@ -35,7 +35,7 @@ One of the most expensive operations for a process is a cache miss - when data i
 Data is not moved in bytes or words, but in cache lines (32-256 bytes depending on the processor, usually 64)
 If two variables are on the same cache line and written to by different threads, they present the same problems of write contention as if they were one variable ("false sharing")
 For performance, you must ensure that independent but concurrently written data are on separate cache lines
-When data is accessed from main memory in a predictable fashion (such as walking the data in a predictable "stride"), the processor can optimize by pre-fetching data it expects will be needed shortly
+When data is accessed from main memory in a predictable fashion (such as walking the data in a predictable "stride"), the processor can optimize by pre-fetching data it expects will be needed shortly. This ring buffer has a predicatable pattern of access
 Note that data structures such as linked lists and trees tend to have nodes that are more widely distributed (non-contiguous) in memory and therefore no predictable strides for performance optimization, which forces the processor to perform main memory direct access more often at the time the data is needed at significant performance cost
 QUEUES
 Unbounded queues use linked lists, which we've already discussed with respect to memory contiguousness and strides
@@ -51,11 +51,13 @@ On most processors, there is a high cost for a remainder calculation on a sequen
 The data elements are merely storage for the data to be handled, not the data itself
 Since the data is allocated all at once on startup, it is highly likely that the memory will be contiguous in main memory and will support effective striding for the caches
 When an entry in the ring buffer is claimed by a producer, it copies data into one of the pre-allocated elements
+Sequence number % number of slots = slot in use, no pointer to end, ok to wrap managed by producer/consumer instance
 In most Disruptor usages, there is only one producer (network IO, file system reads, etc), which means no contention on sequence entry/allocation; if more than one producer, they can race each other for slots and use CAS on the sequence number for next available slot to use
 Producers copy data into the claimed element and make it public to consumers by "committing" the sequence
-Consumers wait for a sequence to become available in the ring buffer before they read the entry; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
+Consumers wait for a sequence to become available in the ring buffer before they read the entry using a WaitStrategy defined in the ConsumerBarrier; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
 If CPU resource is more important, the consumer can wait on a condition variable protected by a lock that is signalled by a producer, which as mentioned before comes with a contention performance penalty
-Consumers can also loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
+Consumers loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
+Consumers that represent the same dependency share a ConsumerBarrier instance, but only one consumer per CB can have write access to any field in the entry
 SEQUENCING
 Basic counter for single producer, atomic int/long for multiple producers (using CAS to protect the counter)
 When a producer finishes copying data to a ring buffer element, it "commits" the transaction by updating a separate counter used by consumers to find out the next available data to use
@@ -64,6 +66,8 @@ Consumers can be constructed into a graph of dependencies representing multiple 
 BATCHING EFFECT
 When a consumer falls behind due to latency, it has the ability to process all ring buffer elements up to the last committed by the producer, a capability not found in queues
 Lagging consumers can therefore "catch up", increasing throughput and reducing/smoothing latency; near constant time for latency regardless of load, until memory subsystem is saturated, at which point the profile is linear following Little's Law
+Producers also batch, and can write to the point in the ring buffer where the slowest consumer is currently working
+Producers also have to manage a wait strategy when there are multiples of them; no "commits" to the ring buffer occur until the current sequence number is the one before the claimed slot
 Compared to "J" curve effect on latency observed with queues as load increases
 DEPENDENCY GRAPHS
 With a graph like model of producers and consumers (such as actors), queues are required to manage interactions between each of the elements
@@ -77,8 +81,13 @@ EVENT SOURCING
 Daily snapshot and restart to clear all memory
 Replay events from a snapshot to see what happened when something goes awry
 
-Presentation from QCon is on InfoQ
-Disruptor Google Group
-Martin Fowler's Bliki post
-Martin Thompson's Mechanical Sympathy blog
+Links:
+Blog: Processing 1M TPS with Axon Framework and the Disruptor: http://blog.jteam.nl/2011/07/20/processing-1m-tps-with-axon-framework-and-the-disruptor/
+QCon presentation: http://www.infoq.com/presentations/LMAX
+Google Group: http://groups.google.com/group/lmax-disruptor
+Martin Fowler's Bliki post: http://martinfowler.com/articles/lmax.html
+Martin Thompson's Mechanical Sympathy blog: http://mechanical-sympathy.blogspot.com/
+Trisha Gee's Mechanitis Blog: http://mechanitis.blogspot.com/
+Disruptor Wizard (simplifying dependency wiring): http://github.com/ajsutton/disruptorWizard
+My Scala port: http://github.com/jamie-allen/sdisruptor
 Presenting at JavaOne 2011
