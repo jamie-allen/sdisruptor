@@ -4,12 +4,15 @@
 
 Jamie Allen, *jallen@chariotsolutions.com*, @jamie_allen
 
-*July 16, 2011*
+* August 10, 2011*
 
 !SLIDE transition=fade
 
-There is nothing new here.  Why is the Disruptor pattern relevant?
+* There is nothing new here.  Why is the Disruptor pattern relevant?
+* The "virtual" nature of our runtime and deployment environment has desensitized us as developers to the impact of our decisions
+* It flies in the face of so many concurrency abstractions to show what can be accomplished when implementing code in the most optimized fashion
 
+[NOTES]
 Started out with my blog post about learnings from actor development
 Got a comment on DZone about the need for assigning threads to a core, laughed it off as a troll
 The commenter claimed that the JVM's life expectancy was limited if you couldn't assign a thread to a core
@@ -17,16 +20,18 @@ I didn't get it - why would you want to take control of a core when an OS does t
 LMAX changed my thinking - I didn't understand high-throughput well enough
 LMAX is handling 6 MILLION transactions per second using a single-threaded computing model, and they're doing it with Java
 So the troll was half-right: there is a use-case for assigning a thread to a core, but you CAN do it in the JVM and get tremendous results
+[/NOTES]
 
 !SLIDE transition=fade
 
 # How Did They Arrive at the Disruptor
 
+* Initiative started several years ago at Betfair, with the Flywheel and 100x projects, trying to glean more performance from their system
 * Looked into J2EE, SEDA, Actors, etc - couldn't get the throughput they desired
+* Neither project made it to production due to legacy integration issues
+* Betfair spun off Tradefair into LMAX, Martin Thompson leaves Matt Youill, works with Mike Barker and the rest of the team on their clean slate Disruptor implementation
 * So named because it has elements for dealing with graphs of dependencies to the Java7 Phaser concurrency type, introduced in support of ForkJoin
-
-
-ASK MARTIN THOMPSON: Why was this done on the JVM instead of C++ or another native implementation?  Ola Bini talked to Martin Fowler, and they believe that the benefits of using the Java platform outweighed the potential for marginal throughput gains in C++
+* Why the JVM?  Why wasn't this done in C++ or another native implementation?  Ola Bini talked to Martin Fowler, and they believe that the benefits of using the Java platform outweighed the potential for marginal throughput gains in C++. Note that Thompson is currently looking to port the code to C++.
 
 !SLIDE transition=fade
 
@@ -41,7 +46,7 @@ ASK MARTIN THOMPSON: Why was this done on the JVM instead of C++ or another nati
 * Never release the core to the kernel (thus maintaining your L3 cache)
 * Avoid lock arbitration 
 * Minimize usage of memory barriers
-* Reuse pre-allocated memory to avoid GC and compaction
+* Reuse pre-allocated sequential memory to avoid GC and compaction and enable cache pre-fetching
 
 !SLIDE transition=fade
 
@@ -111,49 +116,78 @@ ASK MARTIN THOMPSON: Why was this done on the JVM instead of C++ or another nati
 
 !SLIDE transition=fade
 
+# Implementation: Ring Buffer
+
+* The Ring Buffer is a bounded, pre-allocated data structure, and the allocated data elements will exist for the life of the Disruptor instance
+* Per Daniel Spiewak, was considered for the core data structure in Clojure before the bit-mapped vector trie was selected by Rich Hickey
+* On most processors, there is a high cost for a remainder calculation on a sequence number which determins the slot in the ring, but it can be greatly reduced by making the ring size a power of 2; use a bit mask of ring size minus one to perform the remainder operation efficiently
+* The data elements are merely storage for the data to be handled, not the data itself
+* Since the data is allocated all at once on startup, it is highly likely that the memory will be contiguous in main memory and will support effective striding for the caches
+* When an entry in the ring buffer is claimed by a producer, it copies data into one of the pre-allocated elements
+* Sequence number % number of slots = slot in use, no pointer to end, ok to wrap managed by producer/consumer instance
+
+!SLIDE transition=fade
+
+# Implementation: Producers
+
+* In most Disruptor usages, there is only one producer (network IO, file system reads, etc), which means no contention on sequence entry/allocation; if more than one producer, they can race each other for slots and use CAS on the sequence number for next available slot to use
+* Producers can check with Consumers to see where they are so they don't overwrite ring buffer slots still in use
+* Producers copy data into the claimed element and make it public to consumers by "committing" the sequence to their ProducerBarrier
+
+!SLIDE transition=fade
+
+# Implementation: Consumers
+
+* Consumers wait for a sequence to become available in the ring buffer before they read the entry using a WaitStrategy defined in the ConsumerBarrier; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
+* If CPU resource is more important, the consumer can wait on a condition variable protected by a lock that is signalled by a producer, which as mentioned before comes with a contention performance penalty
+* Consumers loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
+* Consumers that represent the same dependency share a ConsumerBarrier instance, but only one consumer per CB can have write access to any field in the entry
+
+!SLIDE transition=fade
+
+# Sequencing
+
+* Basic counter for single producer, atomic int/long for multiple producers (using CAS to protect the counter)
+* When a producer finishes copying data to a ring buffer element, it "commits" the transaction by updating a separate counter used by consumers to find out the next available data to use
+* Consumers merely provide a BatchHandler implementation that receives callbacks when data is available for consumption 
+* Consumers can be constructed into a graph of dependencies representing multiple stages in a processing pipeline
+* Read/Writes are minimized due to the performance cost of the volatile memory barrier
+
+!SLIDE transition=fade
+
+# Batching Effect
+
+* When a consumer falls behind due to latency, it has the ability to process all ring buffer elements up to the last committed by the producer, a capability not found in queues
+* Lagging consumers can therefore "catch up", increasing throughput and reducing/smoothing latency; near constant time for latency regardless of load, until memory subsystem is saturated, at which point the profile is linear following Little's Law
+* Producers also batch, and can write to the point in the ring buffer where the slowest consumer is currently working
+* Producers also have to manage a wait strategy when there are multiples of them; no "commits" to the ring buffer occur until the current sequence number is the one before the claimed slot
+* Compared to "J" curve effect on latency observed with queues as load increases
+
+!SLIDE transition=fade
+
+# Dependency Graphs
+
+* With a graph like model of producers and consumers (such as actors), queues are required to manage interactions between each of the elements
+* The single ring buffer replaces this in a single data structure for all of the elements, resulting in greatly reduced fixed costs of execution, increasing throughput and reducing latency
+* Care must be taken to ensure that state written by independent consumers doesn't result in the false sharing of cache lines
+
+!SLIDE transition=fade
+
+# Event Sourcing
+
+* Daily snapshot and restart to clear all memory
+* Replay events from a snapshot to see what happened when something goes awry
+
+!SLIDE transition=fade
+
 # Use cases for Disruptor
 
 * Note that the key is BALANCED FLOW - if your flow is unbalanced, you need to weigh the cost of losing local L3 cache with the reuse of cores
 
-RING BUFFER
-The Ring Buffer is a bounded, pre-allocated data structure, and the allocated data elements will exist for the life of the Disruptor instance
-Per Daniel Spiewak, was considered for the core data structure in Clojure before the bit-mapped vector trie was selected by Rich Hickey
-On most processors, there is a high cost for a remainder calculation on a sequence number which determins the slot in the ring, but it can be greatly reduced by making the ring size a power of 2; use a bit mask of ring size minus one to perform the remainder operation efficiently
-The data elements are merely storage for the data to be handled, not the data itself
-Since the data is allocated all at once on startup, it is highly likely that the memory will be contiguous in main memory and will support effective striding for the caches
-When an entry in the ring buffer is claimed by a producer, it copies data into one of the pre-allocated elements
-Sequence number % number of slots = slot in use, no pointer to end, ok to wrap managed by producer/consumer instance
-In most Disruptor usages, there is only one producer (network IO, file system reads, etc), which means no contention on sequence entry/allocation; if more than one producer, they can race each other for slots and use CAS on the sequence number for next available slot to use
-Producers copy data into the claimed element and make it public to consumers by "committing" the sequence
-Consumers wait for a sequence to become available in the ring buffer before they read the entry using a WaitStrategy defined in the ConsumerBarrier; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
-If CPU resource is more important, the consumer can wait on a condition variable protected by a lock that is signalled by a producer, which as mentioned before comes with a contention performance penalty
-Consumers loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
-Consumers that represent the same dependency share a ConsumerBarrier instance, but only one consumer per CB can have write access to any field in the entry
-SEQUENCING
-Basic counter for single producer, atomic int/long for multiple producers (using CAS to protect the counter)
-When a producer finishes copying data to a ring buffer element, it "commits" the transaction by updating a separate counter used by consumers to find out the next available data to use
-Consumers merely provide a BatchHandler implementation that receives callbacks when data is available for consumption 
-Consumers can be constructed into a graph of dependencies representing multiple stages in a processing pipeline
-Read/Writes are minimized due to the performance cost of the volatile memory barrier
-BATCHING EFFECT
-When a consumer falls behind due to latency, it has the ability to process all ring buffer elements up to the last committed by the producer, a capability not found in queues
-Lagging consumers can therefore "catch up", increasing throughput and reducing/smoothing latency; near constant time for latency regardless of load, until memory subsystem is saturated, at which point the profile is linear following Little's Law
-Producers also batch, and can write to the point in the ring buffer where the slowest consumer is currently working
-Producers also have to manage a wait strategy when there are multiples of them; no "commits" to the ring buffer occur until the current sequence number is the one before the claimed slot
-Compared to "J" curve effect on latency observed with queues as load increases
-DEPENDENCY GRAPHS
-With a graph like model of producers and consumers (such as actors), queues are required to manage interactions between each of the elements
-The single ring buffer replaces this in a single data structure for all of the elements, resulting in greatly reduced fixed costs of execution, increasing throughput and reducing latency
-Care must be taken to ensure that state written by independent consumers doesn't result in the false sharing of cache lines
+!SLIDE transition=fade
 
-TO EXECUTE PERFORMANCE TESTS, YOU NEED A MACHINE THAT CAN EXECUTE 4 THREADS SIMULTANEOUSLY (I need a box)
+# Links
 
-
-EVENT SOURCING
-Daily snapshot and restart to clear all memory
-Replay events from a snapshot to see what happened when something goes awry
-
-Links:
 Blog: Processing 1M TPS with Axon Framework and the Disruptor: http://blog.jteam.nl/2011/07/20/processing-1m-tps-with-axon-framework-and-the-disruptor/
 QCon presentation: http://www.infoq.com/presentations/LMAX
 Google Group: http://groups.google.com/group/lmax-disruptor
