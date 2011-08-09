@@ -1,0 +1,472 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <title>LMAX Disruptor</title>
+
+  <link rel="stylesheet" href="./css/reset.css" type="text/css"/>
+  <link rel="stylesheet" href="./css/showoff.css" type="text/css"/>
+
+  <script type="text/javascript" src="./js/jquery-1.4.2.min.js"></script>
+  <script type="text/javascript" src="./js/jquery.cycle.all.js"></script>
+	<script type="text/javascript" src="./js/jquery-print.js"></script>
+  <script type="text/javascript" src="./js/jquery.batchImageLoad.js"></script>
+
+  <script type="text/javascript" src="./js/jquery.doubletap-0.1.js"></script>
+
+  <script type="text/javascript" src="./js/fg.menu.js"></script>
+  <script type="text/javascript" src="./js/showoff.js"></script>
+  <script type="text/javascript" src="./js/jTypeWriter.js"> </script>
+  <script type="text/javascript" src="./js/sh_main.min.js"></script>
+  <script type="text/javascript" src="./js/core.js"></script>
+  <script type="text/javascript" src="./js/showoffcore.js"></script>
+
+  <link type="text/css" href="./css/fg.menu.css" media="screen" rel="stylesheet" />
+  <link type="text/css" href="./css/theme/ui.all.css" media="screen" rel="stylesheet" />
+  <link type="text/css" href="./css/sh_style.css" rel="stylesheet" >
+
+  
+    <link rel="stylesheet" href="file/disruptor.css" type="text/css"/>
+  
+
+  
+
+  <script type="text/javascript">
+  $(function(){
+    setupPreso(false, './');
+  });
+  </script>
+</head>
+
+<body>
+
+
+<a tabindex="0" href="#search-engines" class="fg-button fg-button-icon-right ui-widget ui-state-default ui-corner-all" id="navmenu"><span class="ui-icon ui-icon-triangle-1-s"></span>slides</a>
+<div id="navigation" class="hidden"></div>
+
+<div id="help">
+  <table>
+    <tr><td class="key">space, &rarr;</td><td>next slide</td></tr>
+    <tr><td class="key">&larr;</td><td>previous slide</td></tr>
+    <tr><td class="key">d</td><td>debug mode</td></tr>
+    <tr><td class="key">## &lt;ret&gt;</td><td>go to slide #</td></tr>
+    <tr><td class="key">c</td><td>table of contents (vi)</td></tr>
+    <tr><td class="key">f</td><td>toggle footer</td></tr>
+    <tr><td class="key">r</td><td>reload slides</td></tr>
+    <tr><td class="key">z</td><td>toggle help (this)</td></tr>
+  </table>
+</div>
+
+<div class="buttonNav">
+  <input type="submit" onClick="prevStep();" value="prev"/>
+  <input type="submit" onClick="nextStep();" value="next"/>
+</div>
+
+<div id="preso">loading presentation...</div>
+<div id="footer">
+  <span id="slideInfo"></span>
+  <span id="debugInfo"></span>
+  <span id="notesInfo"></span>
+</div>
+
+<div id="slides" class="offscreen" style="display:none;">
+<div class="slide" data-transition="none"><div class="content title-page" ref="preso/presentation/1">
+<h2>The Querulous ORM</h2>
+
+<p>Jamie Allen, <em>jallen@chariotsolutions.com</em>, @jamie_allen</p>
+
+<p><em>July 16, 2011</em></p></div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/2">
+<p>There is nothing new here.  Why is the Disruptor pattern relevant?</p>
+
+<p>Started out with my blog post about learnings from actor development
+Got a comment on DZone about the need for assigning threads to a core, laughed it off as a troll
+The commenter claimed that the JVM's life expectancy was limited if you couldn't assign a thread to a core
+I didn't get it - why would you want to take control of a core when an OS does that job for you so well?
+LMAX changed my thinking - I didn't understand high-throughput well enough
+LMAX is handling 6 MILLION transactions per second using a single-threaded computing model, and they're doing it with Java
+So the troll was half-right: there is a use-case for assigning a thread to a core, but you CAN do it in the JVM and get tremendous results</p></div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/3">
+<h1>How Did They Arrive at the Disruptor</h1>
+
+<ul>
+<li>Looked into J2EE, SEDA, Actors, etc - couldn't get the throughput they desired</li>
+<li>So named because it has elements for dealing with graphs of dependencies to the Java7 Phaser concurrency type, introduced in support of ForkJoin</li>
+</ul>
+
+
+<p>ASK MARTIN THOMPSON: Why was this done on the JVM instead of C++ or another native implementation?  Ola Bini talked to Martin Fowler, and they believe that the benefits of using the Java platform outweighed the potential for marginal throughput gains in C++</p></div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/4">
+<h1>Mechanical Sympathy</h1>
+
+<ul>
+<li>Martin Thompson, the lead architect at LMAX, believes in the concept of Mechanical Sympathy, a term coined by former F1 champion Jackie Stewart, who believed that all great drivers had to understand at some level how their machine worked to derive the fastest time driving it</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/5">
+<h1>Keys to the Disruptor's Performance</h1>
+
+<ul>
+<li>Never release the core to the kernel (thus maintaining your L3 cache)</li>
+<li>Avoid lock arbitration</li>
+<li>Minimize usage of memory barriers</li>
+<li>Reuse pre-allocated memory to avoid GC and compaction</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/6">
+<h1>Thread Management</h1>
+
+<ul>
+<li>In a low latency, high throughput system with balanced flow, you can assign a thread to a core from the JVM by never releasing control of the thread (wait, ForkJoin)</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/7">
+<h1>Avoiding Locks</h1>
+
+<ul>
+<li>Locks, extremely non-performant due to context switching in the kernel which suspend threads waiting on a lock until it is released</li>
+<li>Note that during a kernel context switch, the OS may decide to perform other tasks not related to your process, thus losing valuable cycles</li>
+<li>CAS semantics are much better, since no kernel context switch is required for lock arbitration, but the processor must still lock its instruction pipeline to ensure atomicity and introduce a memory barrier to ensure that changes are made visible to all threads</li>
+<li>Memory barriers are used by processors to indicate sections of code where the ordering of memory updates matters - all memory changes appear in order at the point required (note: compilers can add software MBs in addtion to the processor's, which is how Java's volatile keyword works)</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/8">
+<h1>Minimal Use of Memory Barriers</h1>
+
+<ul>
+<li>Processors only need to guarantee that the execution of instructions gives the same result, regardless of order, and thus perform instructions out of order frequently to enhance performance</li>
+<li>Memory barriers (volatile) specify where no optimizations can be performed to ensure that ordering is correct at runtime</li>
+</ul>
+
+
+<h1>What's Wrong With Queues</h1>
+
+<ul>
+<li>Unbounded queues use linked lists, which we've already discussed with respect to memory contiguousness and strides</li>
+<li>Bounded queues use arrays, where the head (dequeuing) and tail (enqueuing) are the primary points of write contention, but also have a tendency to share a cache line</li>
+<li>In Java, queues are also a significant source of garbage - the memory for data must be allocated, and if unbounded, the linked list node must also be allocated; when dereferenced, all of these objects must be reclaimed</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/9">
+<h1>Memory Allocation</h1>
+
+<ul>
+<li>What if you designed your system to utilize on-board caches for a core as effectively as possible?</li>
+<li>Allocate a large ring buffer of byte arrays on startup, and copy data into those arrays as received/handled</li>
+<li>Sequencing of data in main memory is also important - as the core understands your usage of data from memory, it can pre-load the cache with data it knows you need next.  You need to understand how you are allocating data and what that means (see padding)</li>
+<li>The sequential nature of the ring buffer allows you to introduce dependencies between processes that need something to happen before they move on (how you compose Consumers by ConsumerBarrier)</li>
+<li>Maximizing the use of "cache lines" (64 bytes, 8 longs of 8 bytes each, avoiding misses and "false sharing" - which aids with...</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/10">
+<h1>Caching</h1>
+
+<ul>
+<li>Processors are much faster than memory now, and to optimize their performance, they use varying levels of caches (registers, store buffers, L1, L2, L3 and main memory) to support the execution of instructions, and they are kept coherent via message passing protocols</li>
+<li>One of the most expensive operations for a process is a cache miss - when data is looked for in one of the caches and not found, so it must go to the next level</li>
+<li>Data is not moved in bytes or words, but in cache lines (32-256 bytes depending on the processor, usually 64)</li>
+<li>If two variables are on the same cache line and written to by different threads, they present the same problems of write contention as if they were one variable ("false sharing")</li>
+<li>For performance, you must ensure that independent but concurrently written data are on separate cache lines</li>
+<li>When data is accessed from main memory in a predictable fashion (such as walking the data in a predictable "stride"), the processor can optimize by pre-fetching data it expects will be needed shortly. This ring buffer has a predicatable pattern of access</li>
+<li>Note that data structures such as linked lists and trees tend to have nodes that are more widely distributed (non-contiguous) in memory and therefore no predictable strides for performance optimization, which forces the processor to perform main memory direct access more often at the time the data is needed at significant performance cost</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/11">
+<h1>Garbage Collection</h1>
+
+<ul>
+<li>The reuse of array buffers guarantees no GC of mature objects, thus no global GC compaction to "stop the world" - limit GC to short- and long-lived objects, not those in the middle</li>
+<li>Latency occurs as those objects are copied between generations, which is minimized by reusing objects so that they only traverse the generations once
+*GC: Restart the machine every day to clear the heap, guarantee no compaction (can go 3-4 days without worrying about it, but this is a safety measure)</li>
+<li>How much time do we all waste trying to find the optimal GC strategy for a system?</li>
+<li>What if you were able to design your system so that you didn't have to think about it, because YOU CONTROL how much GC and compaction is taking place?</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/12">
+<h1>Sequential Data</h1>
+
+<ul>
+<li>The "ring" characteristics of the array buffer promote resequencing - you never stop traversing the queue (sequence number increases, use MOD by ring size to get slot)</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/presentation/13">
+<h1>Use cases for Disruptor</h1>
+
+<ul>
+<li>Note that the key is BALANCED FLOW - if your flow is unbalanced, you need to weigh the cost of losing local L3 cache with the reuse of cores</li>
+</ul>
+
+
+<p>RING BUFFER
+The Ring Buffer is a bounded, pre-allocated data structure, and the allocated data elements will exist for the life of the Disruptor instance
+Per Daniel Spiewak, was considered for the core data structure in Clojure before the bit-mapped vector trie was selected by Rich Hickey
+On most processors, there is a high cost for a remainder calculation on a sequence number which determins the slot in the ring, but it can be greatly reduced by making the ring size a power of 2; use a bit mask of ring size minus one to perform the remainder operation efficiently
+The data elements are merely storage for the data to be handled, not the data itself
+Since the data is allocated all at once on startup, it is highly likely that the memory will be contiguous in main memory and will support effective striding for the caches
+When an entry in the ring buffer is claimed by a producer, it copies data into one of the pre-allocated elements
+Sequence number % number of slots = slot in use, no pointer to end, ok to wrap managed by producer/consumer instance
+In most Disruptor usages, there is only one producer (network IO, file system reads, etc), which means no contention on sequence entry/allocation; if more than one producer, they can race each other for slots and use CAS on the sequence number for next available slot to use
+Producers copy data into the claimed element and make it public to consumers by "committing" the sequence
+Consumers wait for a sequence to become available in the ring buffer before they read the entry using a WaitStrategy defined in the ConsumerBarrier; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
+If CPU resource is more important, the consumer can wait on a condition variable protected by a lock that is signalled by a producer, which as mentioned before comes with a contention performance penalty
+Consumers loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
+Consumers that represent the same dependency share a ConsumerBarrier instance, but only one consumer per CB can have write access to any field in the entry
+SEQUENCING
+Basic counter for single producer, atomic int/long for multiple producers (using CAS to protect the counter)
+When a producer finishes copying data to a ring buffer element, it "commits" the transaction by updating a separate counter used by consumers to find out the next available data to use
+Consumers merely provide a BatchHandler implementation that receives callbacks when data is available for consumption
+Consumers can be constructed into a graph of dependencies representing multiple stages in a processing pipeline
+Read/Writes are minimized due to the performance cost of the volatile memory barrier
+BATCHING EFFECT
+When a consumer falls behind due to latency, it has the ability to process all ring buffer elements up to the last committed by the producer, a capability not found in queues
+Lagging consumers can therefore "catch up", increasing throughput and reducing/smoothing latency; near constant time for latency regardless of load, until memory subsystem is saturated, at which point the profile is linear following Little's Law
+Producers also batch, and can write to the point in the ring buffer where the slowest consumer is currently working
+Producers also have to manage a wait strategy when there are multiples of them; no "commits" to the ring buffer occur until the current sequence number is the one before the claimed slot
+Compared to "J" curve effect on latency observed with queues as load increases
+DEPENDENCY GRAPHS
+With a graph like model of producers and consumers (such as actors), queues are required to manage interactions between each of the elements
+The single ring buffer replaces this in a single data structure for all of the elements, resulting in greatly reduced fixed costs of execution, increasing throughput and reducing latency
+Care must be taken to ensure that state written by independent consumers doesn't result in the false sharing of cache lines</p>
+
+<p>TO EXECUTE PERFORMANCE TESTS, YOU NEED A MACHINE THAT CAN EXECUTE 4 THREADS SIMULTANEOUSLY (I need a box)</p>
+
+<p>EVENT SOURCING
+Daily snapshot and restart to clear all memory
+Replay events from a snapshot to see what happened when something goes awry</p>
+
+<p>Links:
+Blog: Processing 1M TPS with Axon Framework and the Disruptor: http://blog.jteam.nl/2011/07/20/processing-1m-tps-with-axon-framework-and-the-disruptor/
+QCon presentation: http://www.infoq.com/presentations/LMAX
+Google Group: http://groups.google.com/group/lmax-disruptor
+Martin Fowler's Bliki post: http://martinfowler.com/articles/lmax.html
+Martin Thompson's Mechanical Sympathy blog: http://mechanical-sympathy.blogspot.com/
+Trisha Gee's Mechanitis Blog: http://mechanitis.blogspot.com/
+Disruptor Wizard (simplifying dependency wiring): http://github.com/ajsutton/disruptorWizard
+My Scala port: http://github.com/jamie-allen/sdisruptor
+Presenting at JavaOne 2011</p></div>
+</div><div class="slide" data-transition="none"><div class="content title-page" ref="preso/querulous/1">
+<h2>The Querulous ORM</h2>
+
+<p>Jamie Allen, <em>jallen@chariotsolutions.com</em>, @jamie_allen</p>
+
+<p><em>July 16, 2011</em></p></div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/2">
+<h1>Disclaimer</h1>
+
+<p>Just like Brian, I am <em>not</em> a Querulous expert, and have never used it in anger.</p></div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/3">
+<h1>Querulous</h1>
+
+<ul>
+<li>Written by Matt Freels, Nick Kallen, Robey Pointer, Utkarsh Srivastava and Ed Caesar at Twitter</li>
+<li>Exposes SQL directly.  No DSL.  Sits on top of JDBC.  Can call stored procs.</li>
+<li>Designed primarily to meet the extreme demands of FlockDB (Twitter's distributed, fault-tolerant graph database), which demands very low-latency (sub-millisecond) response times for individual queries.</li>
+<li>A very minimalist database querying library.  Any excessive indirection would be intolerable in this environment.</li>
+<li>Designed for querying databases at low-latency, massive scale and with easy operability.</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/4">
+<h1>Major Features</h1>
+
+<ul>
+<li>Flexible timeouts</li>
+<li>Extensive logging</li>
+<li>Rich statistics</li>
+<li>Extremely modular, to support DIFFERENT timeout and health check strategies based on context</li>
+<li>As a result, it is extremely configurable</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/5">
+<h1>Nick's Design Patterns of Modularity</h1>
+
+<ul>
+<li>Must have very few assumptions hard-coded</li>
+<li>No concrete types!</li>
+<li><p>Ruby's open classes, method aliasing and even metaclasses do not solve this problem</p></li>
+<li><p>Dependency Injection</p></li>
+<li>Factories</li>
+<li><p>Decorators</p></li>
+<li><p>Querulous achieves modularity by providing an "injection point" for the programmer to layer on custom functionality.</p></li>
+<li><p>"Why I Love Everything You Hate About Java"</p></li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/6">
+<h1>Querulous is MySQL-Specific</h1>
+
+<ul>
+<li><p>FlockDB uses MySQL as the storage engine</p></li>
+<li><p>There are several generic JDBC forks on GitHub, including Rose Toomey, forked from Brendan McAdams, forked from Rhys Keepence</p></li>
+<li><p>I'm using Rose's querulous-generic fork for the purposes of this talk, and SQLite as the database.  Olle Kullberg has another fork as well.</p></li>
+<li>Sean Rhea has a project called scalaqlite if you want to talk directly to SQLite without Querulous.</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/7">
+<h1>Making a Connection and Performing Queries</h1>
+
+<ul>
+<li><p>All queries go through a QueryEvaluator instance</p>
+
+<p>  import com.twitter.querulous.evaluator.QueryEvaluator</p>
+
+<p>  trait TestConnection {
+      val queryEvaluator = QueryEvaluator("org.sqlite.JDBC", "jdbc:sqlite:phase", "", "")
+  }</p></li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/8">
+<ul>
+<li><p>Basic Query Semantics - YOU write the SQL</p>
+
+<p>  case class Author(id: Int, firstName: String, lastName: String)
+  object ShowAuthors extends TestConnection {
+      def main(args: Array[String]) {
+          getAuthors
+      }</p>
+
+<pre><code>  def getAuthors() {
+      val users = queryEvaluator.select(
+          "SELECT * FROM author WHERE id IN (?) OR first_name = ?", List(1,2), "Bill") { 
+              row =&gt;
+                  new Author(row.getInt("id"), 
+                      row.getString("first_name"), 
+                      row.getString("last_name"))
+          }
+
+          users.map(author =&gt; println(author))
+  }
+</code></pre>
+
+<p>  }</p></li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/9">
+<h1>Transaction Support</h1>
+
+<pre><code>queryEvaluator.transaction { transaction =&gt;
+    transaction.select("SELECT ... FOR UPDATE", ...)
+    transaction.execute("INSERT INTO author VALUES (?, ?, ?, ?, ?, ?)", 5, "Brendan",
+        "McAdams", "Michelangelo", "US", "1980")
+    transaction.execute("INSERT INTO author VALUES (?, ?, ?, ?, ?, ?)", 6, "Debasish",
+        "Ghosh", null, "India", "1980")
+}
+</code></pre>
+
+<ul>
+<li>Transactions will be rolled back in the case of an exception</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/10">
+<h1>Composable Decorators</h1>
+
+<ul>
+<li><p>Advanced features can be layered on using composing QueryFactory types</p>
+
+<p>  val queryFactory = new RetryingQueryFactory(
+                          new TimingOutQueryFactory(new SqlQueryFactory, 3000.millis), 5)</p>
+
+<p>  val queryFactory = new DebuggingQueryFactory(
+                          new RetryingQueryFactory(
+                              new TimingOutQueryFactory(new SqlQueryFactory, 3.seconds), 5),
+                                  println)</p></li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/11">
+<h1>Statistics</h1>
+
+<ul>
+<li><p>Use factories to get database stats</p>
+
+<p>  val stats = new StatsCollector {
+      def incr(name: String, count: Int) = Stats.incr(name, count)
+      def time<a href="name:%20String">A</a>(f: =&gt; A): A = Stats.time(name)(f)
+  }
+  val databaseFactory = new StatsCollectingDatabaseFactory(
+                          new ApachePoolingDatabaseFactory(...), stats)</p></li>
+<li><p>To memoize DB connections and maintain connection limits (if you are dynamically connecting to dozens of hosts)</p>
+
+<p>  val databaseFactory = new MemoizingDatabaseFactory(new ApachePoolingDatabaseFactory(...))</p></li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/12">
+<h1>Async API</h1>
+
+<ul>
+<li>Based on Twitter's com.twitter.util.Future, a non-Actor re-implementation of Scala Futures</li>
+<li>Uses the AsyncQueryEvaluator rather than the standard QueryEvaluator</li>
+<li>Methods immediately return values wrapped in a Future</li>
+<li>Blocking JDBC calls are executed within a thread pool</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/13">
+<h1>Async API Example</h1>
+
+<pre><code>// returns Future[Seq[User]]
+val future = queryEvaluator.select(
+                "SELECT * FROM users WHERE id IN (?) OR name = ?", List(1,2,3), "Jacques") 
+                    { row =&gt; new User(row.getInt("id"), row.getString("name"))}
+
+// Futures support a functional, monadic interface:
+val tweetsFuture = future flatMap { users =&gt;
+                        queryEvaluator.select("SELECT * FROM tweets WHERE user_id IN (?)", 
+                            users.map(_.id)) { 
+                                row =&gt; new Tweet(row.getInt("id"), row.getString("text"))}
+}
+
+// futures only block when unwrapped.
+val tweets = tweetsFuture.apply()
+</code></pre></div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/14">
+<h1>External Configuration</h1>
+
+<ul>
+<li>AutoDisabling due to failure</li>
+<li>Database pooling</li>
+<li>Retries</li>
+<li>Timeouts</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/15">
+<h1>My Impressions</h1>
+
+<h2>Pros</h2>
+
+<ul>
+<li>Modularity is a plus</li>
+<li>Some very nice composable decorators for standard behavior (timeouts, retrying, debug, etc)</li>
+<li>Definitely has been tested under load</li>
+<li>Futures support looks very cool, async is hot</li>
+</ul>
+
+
+<h2>Cons</h2>
+
+<ul>
+<li>Limited support for Maven</li>
+<li>No support from Twitter for any database other than MySQL</li>
+<li>If you can't write SQL, you better learn</li>
+</ul>
+</div>
+</div><div class="slide" data-transition="fade"><div class="content" ref="preso/querulous/16">
+<h1>Additional info</h1>
+
+<ul>
+<li>This presentation and some sample code can be found at
+<a href="https://github.com/scala-phase/scala-orms/tree/master/Querulous">https://github.com/scala-phase/scala-orms/tree/master/Querulous</a></li>
+<li>Querulous's GitHub repo: <a href="https://github.com/twitter/querulous">https://github.com/twitter/querulous</a></li>
+<li>Rose's querulous-generic GitHub repo: <a href="https://github.com/novus/querulous-generic">https://github.com/novus/querulous-generic</a></li>
+<li>Sean Rhea's scalaqlite: <a href="https://github.com/srhea/scalaqlite">https://github.com/srhea/scalaqlite</a></li>
+<li>Twitter Blog: Why I Love Everything You Hate About Java: <a href="http://magicscalingsprinkles.wordpress.com/2010/02/08/why-i-love-everything-you-hate-about-java/">http://magicscalingsprinkles.wordpress.com/2010/02/08/why-i-love-everything-you-hate-about-java/</a></li>
+<li>No Google Groups group</li>
+<li>No tag on StackOverflow</li>
+</ul>
+
+
+<p><em>Like Brian, I created this presentation with Scott Chacon's ShowOff tool. See
+<a href="https://github.com/schacon/showoff">https://github.com/schacon/showoff</a>.</em></p></div>
+</div>
+</div>
+
+</body>
+</html>

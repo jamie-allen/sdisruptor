@@ -1,0 +1,214 @@
+$slide_background_image: url(chariot.png);
+$header_footer_background: #008;
+$font_family: Helvetica, Verdana, Arial, sans-serif;
+$code_color: #533;
+$body_font_size: 20pt;
+$h1_font_size: 32pt;
+$h2_font_size: $h1_font_size - 6pt;
+$hr_color: #008;
+$code_font_size: 14pt;
+$gradient_top_color: #ffffff;
+$gradient_bottom_color: #aaaaff;
+
+@mixin gradient
+{
+    background: -webkit-gradient(linear, left top, left bottom, from($gradient_top_color), to($gradient_bottom_color));
+    background: -moz-linear-gradient(top, $gradient_bottom_color, $gradient_top_color);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='$gradient_bottom_color', endColorstr='$gradient_top_color');
+}
+
+@mixin centered
+{
+    /* Note: You MUST set a width. */
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body
+{
+    color: #000;
+    font-size: $body_font_size;
+    font-family: $font_family;
+
+    text-align: left;
+}
+
+.slide
+{
+    @include gradient;
+
+}
+
+h1
+{
+    font-size: $h1_font_size;
+    font-weight: bold !important;
+    margin-left: 1em;
+    margin-bottom: 1em;
+}
+
+h2
+{
+    font-size: $h2_font_size;
+    font-weight: bold !important;
+    margin-left: 0 !important;
+    text-align: left !important;
+}
+
+pre
+{
+    margin-left: 1em !important;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    font-size: $code_font_size;
+    background-color: transparent !important;
+
+    code
+    {
+    }
+}
+
+a
+{
+    font-size: $body_font_size - 2pt;
+    font-style: italic;
+}
+
+@mixin content-ul
+{
+    font-size: $body_font_size !important;
+    margin-top: 0.5em;
+    margin-left: 1em !important;
+
+    li
+    {
+        text-align: left;
+        list-style-type: disc;
+        line-height: 1.1em;
+        padding: 0;
+        padding-bottom: 10px;
+        margin: 0;
+
+        ul
+        {
+            margin-top: 0.5em !important;
+
+            li
+            {
+                list-style-type: square;
+                line-height: 1.1em;
+                padding: 0;
+                padding-bottom: 10px;
+                margin: 0;
+            }
+        }
+    }
+}
+
+.content
+{
+    margin-top: 12px !important;
+    margin-left: 2em !important;
+    margin-right: 1em !important;
+    padding-top: 2em !important;
+    text-align: left;
+    font-size: $body_font_size;
+
+    /* Logo image, upper left. */
+    &::before
+    {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        content: $slide_background_image;
+    }
+
+    hr
+    {
+        height: 1px;
+        width: 100%;
+        color: $hr_color;
+        background: $hr_color;
+        border: 0;
+    }
+
+    &.title-page
+    {
+        /* Title page is different. */
+
+        text-align: center !important;
+
+        h1
+        {
+            font-family: Georgia, Times New Roman, Times, serif;
+            font-weight: normal !important;
+            color: $hr_color;
+        }
+
+        h2
+        {
+            font-size: $h1_font_size;
+            text-align: center !important;
+        }
+    }
+
+    img.illustration
+    {
+        display: block;
+        @include centered;
+    }
+
+    h1
+    {
+        border-bottom: 1px solid $hr_color;
+        margin-right: 1em;
+        text-align: left !important;
+    }
+
+    p
+    {
+        margin-top: 0.5em;
+        line-spacing: 1.2em;
+    }
+
+    /* Make all bullets behave the same */
+
+    ul
+    {
+        @include content-ul;
+    }
+
+    &.bullets
+    {
+        ul
+        {
+            @include content-ul;
+        }
+    }
+
+    &.smbullets
+    {
+        ul
+        {
+            @include content-ul;
+        }
+    }
+}
+
+
+html, body
+{
+    margin: 0;
+    padding: 0;
+}
+
+@mixin header_footer_common
+{
+    font-family: $font_family;
+}
+
+div#footer
+{
+    @include header_footer_common;
+}

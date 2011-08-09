@@ -1,0 +1,141 @@
+/* AUTOMATICALLY GENERATED FROM sass/querulous.scss on Thu Jun 16 16:48:19 -0400 2011 */
+body {
+  color: #000;
+  font-size: 20pt;
+  font-family: Helvetica, Verdana, Arial, sans-serif;
+  text-align: left; }
+
+.slide {
+  background: -webkit-gradient(linear, left top, left bottom, from(white), to(#aaaaff));
+  background: -moz-linear-gradient(top, #aaaaff, white);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='$gradient_bottom_color', endColorstr='$gradient_top_color'); }
+
+h1 {
+  font-size: 32pt;
+  font-weight: bold !important;
+  margin-left: 1em;
+  margin-bottom: 1em; }
+
+h2 {
+  font-size: 26pt;
+  font-weight: bold !important;
+  margin-left: 0 !important;
+  text-align: left !important; }
+
+pre {
+  margin-left: 1em !important;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+  font-size: 14pt;
+  background-color: transparent !important; }
+
+a {
+  font-size: 18pt;
+  font-style: italic; }
+
+.content {
+  margin-top: 12px !important;
+  margin-left: 2em !important;
+  margin-right: 1em !important;
+  padding-top: 2em !important;
+  text-align: left;
+  font-size: 20pt;
+  /* Logo image, upper left. */
+  /* Make all bullets behave the same */ }
+  .content::before {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    content: url(chariot.png); }
+  .content hr {
+    height: 1px;
+    width: 100%;
+    color: #000088;
+    background: #000088;
+    border: 0; }
+  .content.title-page {
+    /* Title page is different. */
+    text-align: center !important; }
+    .content.title-page h1 {
+      font-family: Georgia, Times New Roman, Times, serif;
+      font-weight: normal !important;
+      color: #000088; }
+    .content.title-page h2 {
+      font-size: 32pt;
+      text-align: center !important; }
+  .content img.illustration {
+    display: block;
+    /* Note: You MUST set a width. */
+    margin-left: auto;
+    margin-right: auto; }
+  .content h1 {
+    border-bottom: 1px solid #000088;
+    margin-right: 1em;
+    text-align: left !important; }
+  .content p {
+    margin-top: 0.5em;
+    line-spacing: 1.2em; }
+  .content ul {
+    font-size: 20pt !important;
+    margin-top: 0.5em;
+    margin-left: 1em !important; }
+    .content ul li {
+      text-align: left;
+      list-style-type: disc;
+      line-height: 1.1em;
+      padding: 0;
+      padding-bottom: 10px;
+      margin: 0; }
+      .content ul li ul {
+        margin-top: 0.5em !important; }
+        .content ul li ul li {
+          list-style-type: square;
+          line-height: 1.1em;
+          padding: 0;
+          padding-bottom: 10px;
+          margin: 0; }
+  .content.bullets ul {
+    font-size: 20pt !important;
+    margin-top: 0.5em;
+    margin-left: 1em !important; }
+    .content.bullets ul li {
+      text-align: left;
+      list-style-type: disc;
+      line-height: 1.1em;
+      padding: 0;
+      padding-bottom: 10px;
+      margin: 0; }
+      .content.bullets ul li ul {
+        margin-top: 0.5em !important; }
+        .content.bullets ul li ul li {
+          list-style-type: square;
+          line-height: 1.1em;
+          padding: 0;
+          padding-bottom: 10px;
+          margin: 0; }
+  .content.smbullets ul {
+    font-size: 20pt !important;
+    margin-top: 0.5em;
+    margin-left: 1em !important; }
+    .content.smbullets ul li {
+      text-align: left;
+      list-style-type: disc;
+      line-height: 1.1em;
+      padding: 0;
+      padding-bottom: 10px;
+      margin: 0; }
+      .content.smbullets ul li ul {
+        margin-top: 0.5em !important; }
+        .content.smbullets ul li ul li {
+          list-style-type: square;
+          line-height: 1.1em;
+          padding: 0;
+          padding-bottom: 10px;
+          margin: 0; }
+
+html, body {
+  margin: 0;
+  padding: 0; }
+
+div#footer {
+  font-family: Helvetica, Verdana, Arial, sans-serif; }

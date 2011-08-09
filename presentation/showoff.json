@@ -1,0 +1,6 @@
+{
+    "name"        : "LMAX Disruptor",
+    "description" : "A New (Old) Pattern For Concurrency",
+    "sections"    : [ {"section" : "preso" } ]
+}
+
