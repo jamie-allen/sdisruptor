@@ -59,7 +59,7 @@
     <target name="build"
             depends="main:prepare"
             description="Build main source code">
-        <scalac destdir="${dir.main.build}">
+        <scalac destdir="${dir.main.build}" unchecked="on">
             <src path="${dir.main.scala.src}"/>
             <include name="**/*.scala"/>
         </scalac>

@@ -43,35 +43,19 @@ class RingBuffer[T <: AbstractEntry : ClassManifest](entryFactory: EntryFactory[
   val p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
 
   val sizeAsPowerOfTwo = Util.ceilingNextPowerOfTwo(size)
-  var ringModMask = sizeAsPowerOfTwo - 1
-  var entries: Array[T] = getNewArray(sizeAsPowerOfTwo)
-
-  def getNewArray[T](size: Int)(implicit m: ClassManifest[T]): Array[T] = new Array[T](size)
+  val ringModMask = sizeAsPowerOfTwo - 1
+  val entries: Array[T] = new Array[T](sizeAsPowerOfTwo)
+//  val entries: Array[T] = getNewArray(sizeAsPowerOfTwo)
+//
+//  def getNewArray[T](size: Int)(implicit m: ClassManifest[T]): Array[T] = new Array[T](size)
   
   var lastTrackedConsumerMin = RingBuffer.InitialCursorValue
-  var _consumersToTrack = Array[Consumer]()
+  var _consumersToTrack = new Array[Consumer](0)
 
   var claimStrategy: ClaimStrategy = ClaimStrategy.newInstance(claimStrategyOption)
   var waitStrategy: WaitStrategy = WaitStrategy.newInstance(waitStrategyOption)
 
   fill(entryFactory);
-
-  /** ConsumerBarrier handed out for gating consumersToTrack of the RingBuffer and dependent {@link Consumer}(s)
-   */
-  private class ConsumerTrackingConsumerBarrier(consumers: Array[Consumer]) extends ConsumerBarrier[T] {
-    @volatile private var alerted = false;
-
-    override def getEntry(sequence: Long): T = { entries(sequence.asInstanceOf[Int] & ringModMask).asInstanceOf[T] }
-    override def waitFor(sequence: Long): Long = { waitStrategy.waitFor(consumers, RingBuffer.this, this, sequence) }
-    override def waitFor(sequence: Long, timeout: Long, units: TimeUnit): Long = { waitStrategy.waitFor(consumers, RingBuffer.this, this, sequence, timeout, units) }
-    override def getCursor = cursor
-    override def isAlerted = alerted
-    override def alert() {
-      alerted = true
-      waitStrategy.signalAll()
-    }
-    override def clearAlert() { alerted = false }
-  }
 
   /** Set the consumersToTrack that will be tracked to prevent the ring wrapping.
    *
@@ -186,4 +170,21 @@ class RingBuffer[T <: AbstractEntry : ClassManifest](entryFactory: EntryFactory[
   }
 
   private def fill(entryFactory: EntryFactory[T]) { for (i <- 0 until entries.length) entries(i) = entryFactory.create() }
+
+  /** ConsumerBarrier handed out for gating consumersToTrack of the RingBuffer and dependent {@link Consumer}(s)
+   */
+  private class ConsumerTrackingConsumerBarrier(consumers: Array[Consumer]) extends ConsumerBarrier[T] {
+    @volatile private var alerted = false;
+
+    override def getEntry(sequence: Long): T = { entries(sequence.asInstanceOf[Int] & ringModMask).asInstanceOf[T] }
+    override def waitFor(sequence: Long): Long = { waitStrategy.waitFor(consumers, RingBuffer.this, this, sequence) }
+    override def waitFor(sequence: Long, timeout: Long, units: TimeUnit): Long = { waitStrategy.waitFor(consumers, RingBuffer.this, this, sequence, timeout, units) }
+    override def getCursor = cursor
+    override def isAlerted = alerted
+    override def alert() {
+      alerted = true
+      waitStrategy.signalAll()
+    }
+    override def clearAlert() { alerted = false }
+  }
 }
