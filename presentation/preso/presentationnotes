@@ -187,7 +187,16 @@ SLIDE 17: Implementation: Consumers
 	  is available for consumption 
 	* Read/Writes are minimized due to the performance cost of the volatile memory barrier
 
-SLIDE 18: Batching Effect
+SLIDE 18: Dependency Graphs
+
+	* With a graph like (ie: diamond) model of producers and consumers (such as actors), queues 
+	  are required to manage interactions between each of the elements
+	* The single ring buffer replaces this in a single data structure for all of the elements, 
+	  resulting in greatly reduced fixed costs of execution, increasing throughput and reducing latency
+	* Care must be taken to ensure that state written by independent consumers doesn't result 
+	  in the false sharing of cache lines
+
+SLIDE 19: Batching Effect
 
 	* When a consumer falls behind due to latency, it has the ability to process all ring 
 	  buffer elements up to the last committed by the producer, a capability not found in queues
@@ -199,15 +208,6 @@ SLIDE 18: Batching Effect
 	  "commits" to the ring buffer occur until the current sequence number is the one before the claimed slot
 	* Performs better as load increases!  
 	* Compared to "J" curve effect on latency observed with queues as load increases
-
-SLIDE 19: Dependency Graphs
-
-	* With a graph like (ie: diamond) model of producers and consumers (such as actors), queues 
-	  are required to manage interactions between each of the elements
-	* The single ring buffer replaces this in a single data structure for all of the elements, 
-	  resulting in greatly reduced fixed costs of execution, increasing throughput and reducing latency
-	* Care must be taken to ensure that state written by independent consumers doesn't result 
-	  in the false sharing of cache lines
 
 SLIDE 20: Event Sourcing
 

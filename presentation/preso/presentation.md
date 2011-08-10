@@ -16,7 +16,16 @@ August 10, 2011
 
 * "Virtual" runtime and deployment environment
 * Breaks popular concurrency abstractions
-* Not functional?!?
+* Not functional?!? (OMG! ONOZ!)
+
+.notes
+	* The "virtual" nature of our runtime and deployment environment has desensitized us as
+	  developers to the impact of our design and implementation decisions
+	* It flies in the face of popular concurrency abstractions to show what can be accomplished 
+	  when implementing simple code in a highly-optimized fashion
+	* This is a decidedly NOT functional implementation.  No referential transparency, lots of
+	  shared mutable state
+
 
 !SLIDE transition=fade
 
@@ -100,8 +109,8 @@ August 10, 2011
 * Compulsory
 * Capacity
 * Conflict
-** Mapping
-** Replacement
+	* Mapping
+	* Replacement
 
 !SLIDE transition=fade
 
@@ -127,6 +136,8 @@ August 10, 2011
 * Bit mask modulus
 * Your network card
 
+<img src="ringbuffer.png" class="illustration" note="final slash needed"/>
+
 !SLIDE transition=fade
 
 # Implementation: Producers
@@ -138,6 +149,8 @@ August 10, 2011
 * Batching effect (later)
 * Circuit breakers
 
+<img src="producer.png" class="illustration" note="final slash needed"/>
+
 !SLIDE transition=fade
 
 # Implementation: Consumers
@@ -147,13 +160,7 @@ August 10, 2011
 * Wait Strategy
 * BatchingHandler (later)
 
-!SLIDE transition=fade
-
-# Batching Effect
-
-* Catch-up capability
-* Performs better as load increases
-* "J" curve effect on latency with queues is gone
+<img src="consumer.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
 
@@ -162,6 +169,18 @@ August 10, 2011
 * One data structure for all consumers
 * Increased throughput
 * Reduced latency
+
+<img src="consumer.png" class="illustration" note="final slash needed"/>
+
+!SLIDE transition=fade
+
+# Batching Effect
+
+* Catch-up capability
+* Performs better as load increases
+* "J" curve effect on latency with queues is gone
+
+<img src="disruptor.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
 
