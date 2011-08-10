@@ -169,7 +169,7 @@ SLIDE 16: Implementation: Producers
 	  explicitly committing to Producer Barrier, separates the action of putting the data into a slot and making it visible.  It also helps to maintain two-phase semantics if more than one Disruptor is accessed by a producer
 	* Producers can check with Consumers to see where they are so they don't overwrite ring 
 	  buffer slots still in use
-	* TODO: ClaimStrategy!
+	* ClaimStrategy: single threaded or multithreaded (CAS Atomici vars)
 	* (TOBY) Disruptor effects a total ordering on consumption of incoming requests, so its
 	  IMPERATIVE to make sure you circuit-break anything which could possibly go unbounded 
 	  (e.g. socket timeouts, disk access, etc)
