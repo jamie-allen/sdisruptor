@@ -1,4 +1,7 @@
 !SLIDE title-page
+.notes We're hiring
+Typesafe Scala training with Heiko Seeberger and Josh Suereth at Chariot first week of October?
+Any interest in a one-day seminar on Scala in the enterprise?  Scala & Spring, Scala & OSGi, Scala & GridGain, etc
 
 ## LMAX Disruptor
 
@@ -72,7 +75,7 @@ Thread control: In a low latency, high throughput system with balanced flow, you
 .notes Locks, extremely non-performant due to context switching in the kernel which suspend threads waiting on a lock until it is released
 Note that during a kernel context switch, the OS may decide to perform other tasks not related to your process, thus losing valuable cycles
 CAS semantics are much better, since no kernel context switch is required for lock arbitration, but the processor must still lock its instruction pipeline to ensure atomicity and introduce a memory barrier to ensure that changes are made visible to all threads
-Memory barriers are used by processors to indicate sections of code where the ordering of memory updates matters - all memory changes appear in order at the point required (note: compilers can add software MBs in addtion to the processor's, which is how Java's volatile keyword works)
+Memory barriers are used by processors to indicate sections of code where the ordering of memory updates matters - all memory changes appear in order at the point required (note: compilers can add software MBs in addition to the processor's, which is how Java's volatile keyword works)
 Processors only need to guarantee that the execution of instructions gives the same result, regardless of order, and thus perform instructions out of order frequently to enhance performance
 Memory barriers (volatile) specify where no optimizations can be performed to ensure that ordering is correct at runtime
 
@@ -115,7 +118,7 @@ Store buffers disambiguate memory access and manage dependencies for instruction
 Note that store barriers are flushed when a memory barrier is hit - best to model a problem so that barriers are hit at the boundary of the work unit.  Change a variable last.
 Caches are STATIC Random Access Memory (bistable latching circuitry), does not need to be periodically refreshed like DYNAMIC RAM used in main memory (charged capacitors "leak" the charge denoting whether the bit is 0 or 1, so data "fades").  DRAM is much simpler - one transister and a capacitor per bit versus 6 in SRAM, and thus much higher densities (hundreds of billions of transistors and capacitors  on a single memory chip).  There's even non-volatile SRAM which maintains data even when power is lost.
 Note: Your fancy i7 processor has an 8MB on-die unified L3 cache that is inclusive, shared by all cores
-Some processors have rules for the caches, such strictly inclusive, where all data in L1 must also be in L2.  Athlons are exclusive and can hold more data, which is great when L1 is comparable in size to L2, diminishes when L2 is many times larger.  Not universal, so you have to know your processors policy.
+Some processors have rules for the caches, such strictly inclusive, where all data in L1 must also be in L2.  Athlon processors are exclusive and can hold more data, which is great when L1 is comparable in size to L2, diminishes when L2 is many times larger.  Not universal, so you have to know your processors policy.
 One of the most expensive operations for a process is a cache read miss - when data is looked for in one of the caches and not found, so it must allocate space (evicting something else) and go to the next level to retrieve the data (note: write misses have no penalty because the data can be copied in background)
 The cache "hit rate" measures the effectiveness of your program/algorithm in using a cache
 
@@ -217,7 +220,7 @@ ClaimStrategy: single threaded or multithreaded (CAS Atomici vars)
 .notes Consumers that represent the same dependency share a ConsumerBarrier instance, but only one consumer per CB can have write access to any field in the entry
 Consumers wait for a sequence to become available in the ring buffer before they read the entry using a WaitStrategy defined in the ConsumerBarrier; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
 The sequential nature of the ring buffer allows you to introduce dependencies between processes that need something to happen before they move on (how you compose Consumers by ConsumerBarrier)
-If CPU resource is more important, the consumer can wait on a condition variable protected by a lock that is signalled by a producer, which as mentioned before comes with a contention performance penalty
+If CPU resource is more important, the consumer can wait on a condition variable protected by a lock that is signaled by a producer, which as mentioned before comes with a contention performance penalty
 Consumers loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
 Consumers merely provide a BatchHandler implementation that receives callbacks when data is available for consumption 
 Read/Writes are minimized due to the performance cost of the volatile memory barrier
@@ -326,7 +329,7 @@ Replay events from a snapshot to see what happened when something goes awry
 # SDisruptor: For Comprehensions
 
     // for (i <- counts.length - 1 until -1 by -1) {
-    for (i <- counts.indices.reverse) { // indices is O(1)!
+    for (i <- counts.indices.reverse) { // indices.reverse is O(1), per Seth Tisue!
       if (0L != counts(i)) {
         tailCount += counts(i)
         if (tailCount >= tailTotal) return upperBounds(i)
