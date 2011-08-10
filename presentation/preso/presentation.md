@@ -139,15 +139,15 @@ For performance, you must ensure that independent but concurrently written data 
 * Variables shouldn't share a cache line
 
 !SLIDE transition=fade
-.notes Compulsory, happens the first time a datum is accessed, can be ameliorated through pre-fetching
-Capacity, happens due to the finite space of a cache.  CPU caches almost always have every line filled, almost every allocation requires eviction
+.notes Compulsory/Cold, happens the first time a datum is accessed, can be ameliorated through pre-fetching
+Capacity, happens due to the finite space of a cache regardless of associativity or block size.  Just not there because there is no room, you're using a lot of data at once.  CPU caches almost always have every line filled, almost every allocation requires eviction
 Conflict, avoidable if the cache had not evicted an entry earlier (a victim, which can also be cached in a "victim cache")
-Mapping, due to associativity of data
+Mapping, due to degree of associativity of data (if data can go anywhere, as opposed to direct mapped where it must go in a specific memory space)
 Replacement, due to eviction choice of the replacement policy such as LRU (perfect replacement policy: an oracle that looks into the future to find a cache entry which is actually not going to be hit)
 
 # Cache Misses
 
-* Compulsory
+* Compulsory/Cold
 * Capacity
 * Conflict
 	* Mapping
