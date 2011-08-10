@@ -14,9 +14,9 @@ August 10, 2011
 
 # There is nothing new here
 
-* Why is the Disruptor pattern relevant?
-* The "virtual" nature of our runtime and deployment environment has desensitized us as developers to the impact of our design and implementation decisions
-* It flies in the face of popular concurrency abstractions to show what can be accomplished when implementing simple code in a highly-optimized fashion
+* "Virtual" runtime and deployment environment
+* Breaks popular concurrency abstractions
+* Not functional?!?
 
 !SLIDE transition=fade
 
@@ -51,7 +51,7 @@ August 10, 2011
 
 !SLIDE transition=fade
 
-# Avoiding Locks
+# Avoid Locks
 
 * Context switching is painful
 * CAS semantics are much better, but no panacea

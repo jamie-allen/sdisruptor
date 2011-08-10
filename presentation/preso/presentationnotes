@@ -6,6 +6,8 @@ SLIDE 2: There is nothing new here
 	  developers to the impact of our design and implementation decisions
 	* It flies in the face of popular concurrency abstractions to show what can be accomplished 
 	  when implementing simple code in a highly-optimized fashion
+	* This is a decidedly NOT functional implementation.  No referential transparency, lots of
+	  shared mutable state
 
 SLIDE 3: How Did They Arrive at the Disruptor?
 
@@ -44,7 +46,7 @@ SLIDE 6: Keys to the Disruptor's Performance
 	* Thread control: In a low latency, high throughput system with balanced flow, you can
 	  assign a thread to a core from the JVM by never releasing control of the thread (wait, ForkJoin)
 
-SLIDE 7: Avoiding Locks
+SLIDE 7: Avoid Locks
 
 	* Locks, extremely non-performant due to context switching in the kernel which suspend 
 	  threads waiting on a lock until it is released
