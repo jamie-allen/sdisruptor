@@ -122,59 +122,50 @@ August 10, 2011
 # Implementation: Producers
 
 * Used for Network IO, file system reads, etc
-* No contention on sequence entry/allocation
+* Sequencing
 * Protect against overwriting data in use
+* Claim Strategy
+* Batching effect (later)
 * Circuit breakers
 
 !SLIDE transition=fade
 
 # Implementation: Consumers
 
-* Consumers wait for a sequence to become available in the ring buffer before they read the entry using a WaitStrategy defined in the ConsumerBarrier; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
-* If CPU resource is more important, the consumer can wait on a condition variable protected by a lock that is signalled by a producer, which as mentioned before comes with a contention performance penalty
-* Consumers loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
-* Consumers that represent the same dependency share a ConsumerBarrier instance, but only one consumer per CB can have write access to any field in the entry
-
-!SLIDE transition=fade
-
-# Sequencing
-
-* Basic counter for single producer, atomic int/long for multiple producers (using CAS to protect the counter)
-* When a producer finishes copying data to a ring buffer element, it "commits" the transaction by updating a separate counter used by consumers to find out the next available data to use
-* Consumers merely provide a BatchHandler implementation that receives callbacks when data is available for consumption 
-* Consumers can be constructed into a graph of dependencies representing multiple stages in a processing pipeline
-* Read/Writes are minimized due to the performance cost of the volatile memory barrier
+* Composable by ConsumerBarrier
+* Sequencing
+* Wait Strategy
+* BatchingHandler (later)
 
 !SLIDE transition=fade
 
 # Batching Effect
 
-* When a consumer falls behind due to latency, it has the ability to process all ring buffer elements up to the last committed by the producer, a capability not found in queues
-* Lagging consumers can therefore "catch up", increasing throughput and reducing/smoothing latency; near constant time for latency regardless of load, until memory subsystem is saturated, at which point the profile is linear following Little's Law
-* Producers also batch, and can write to the point in the ring buffer where the slowest consumer is currently working
-* Producers also have to manage a wait strategy when there are multiples of them; no "commits" to the ring buffer occur until the current sequence number is the one before the claimed slot
-* Compared to "J" curve effect on latency observed with queues as load increases
+* Catch-up capability
+* Performs better as load increases
+* "J" curve effect on latency with queues is gone
 
 !SLIDE transition=fade
 
 # Dependency Graphs
 
-* With a graph like model of producers and consumers (such as actors), queues are required to manage interactions between each of the elements
-* The single ring buffer replaces this in a single data structure for all of the elements, resulting in greatly reduced fixed costs of execution, increasing throughput and reducing latency
-* Care must be taken to ensure that state written by independent consumers doesn't result in the false sharing of cache lines
+* One data structure for all consumers
+* Increased throughput
+* Reduced latency
 
 !SLIDE transition=fade
 
 # Event Sourcing
 
-* Daily snapshot and restart to clear all memory
-* Replay events from a snapshot to see what happened when something goes awry
+* Daily snapshot
+* Daily restart to clear all memory
+* Replay events and errors
 
 !SLIDE transition=fade
 
-# Use cases for Disruptor
+# When to use a Disruptor
 
-* Note that the key is BALANCED FLOW - if your flow is unbalanced, you need to weigh the cost of losing local L3 cache with the reuse of cores
+* BALANCED FLOW
 
 !SLIDE transition=fade
 
@@ -189,4 +180,4 @@ August 10, 2011
 * Disruptor Wizard (simplifying dependency wiring): http://github.com/ajsutton/disruptorWizard
 * My Scala port: http://github.com/jamie-allen/sdisruptor
 
-Presenting at JavaOne 2011
+Martin and his team will be presenting at JavaOne 2011
