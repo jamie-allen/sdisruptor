@@ -95,6 +95,16 @@ August 10, 2011
 
 !SLIDE transition=fade
 
+# Cache Misses
+
+* Compulsory
+* Capacity
+* Conflict
+** Mapping
+** Replacement
+
+!SLIDE transition=fade
+
 # Striding
 
 * Predictable access begets pre-fetching
@@ -178,6 +188,8 @@ August 10, 2011
 * Martin Thompson's Mechanical Sympathy blog: http://mechanical-sympathy.blogspot.com/
 * Trisha Gee's Mechanitis Blog: http://mechanitis.blogspot.com/
 * Disruptor Wizard (simplifying dependency wiring): http://github.com/ajsutton/disruptorWizard
+* The Demise of the Low Level Programmer: http://altdevblogaday.com/2011/08/06/demise-low-level-programmer/
+
 * My Scala port: http://github.com/jamie-allen/sdisruptor
 
 Martin and his team will be presenting at JavaOne 2011
