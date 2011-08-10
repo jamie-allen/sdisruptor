@@ -304,9 +304,9 @@ Replay events from a snapshot to see what happened when something goes awry
 
 # SDisruptor: Order of Execution
 
-    var p1, p2, p3, p4, p5, p6, p7: Long = -1L  // cache line padding
+    val p1, p2, p3, p4, p5, p6, p7: Long = -1L  // cache line padding
     @volatile private var _sequence: Long = RingBuffer.InitialCursorValue
-    var p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
+    val p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
 
 !SLIDE transition=fade
 
