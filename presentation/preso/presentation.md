@@ -14,17 +14,18 @@ August 10, 2011
 
 # There is nothing new here
 
+* 6 million TPS
 * "Virtual" runtime and deployment environment
 * Breaks popular concurrency abstractions
 * Not functional?!? (OMG! ONOZ!)
 
 .notes
-	* The "virtual" nature of our runtime and deployment environment has desensitized us as
-	  developers to the impact of our design and implementation decisions
-	* It flies in the face of popular concurrency abstractions to show what can be accomplished 
-	  when implementing simple code in a highly-optimized fashion
-	* This is a decidedly NOT functional implementation.  No referential transparency, lots of
-	  shared mutable state
+* The "virtual" nature of our runtime and deployment environment has desensitized us as
+  developers to the impact of our design and implementation decisions
+* It flies in the face of popular concurrency abstractions to show what can be accomplished 
+  when implementing simple code in a highly-optimized fashion
+* This is a decidedly NOT functional implementation.  No referential transparency, lots of
+  shared mutable state
 
 
 !SLIDE transition=fade

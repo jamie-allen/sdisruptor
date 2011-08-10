@@ -4,6 +4,7 @@ SLIDE 2: There is nothing new here
 
 	* The "virtual" nature of our runtime and deployment environment has desensitized us as
 	  developers to the impact of our design and implementation decisions
+	* 6 million TPS makes it very relevant
 	* It flies in the face of popular concurrency abstractions to show what can be accomplished 
 	  when implementing simple code in a highly-optimized fashion
 	* This is a decidedly NOT functional implementation.  No referential transparency, lots of
@@ -40,7 +41,7 @@ SLIDE 6: Keys to the Disruptor's Performance
 
 	* Never release the core to the kernel (thus maintaining your L3 cache)
 	* Avoid lock arbitration 
-	* Minimize usage of memory barriers
+	* Minimize usage of memory barriers - they guarantee order, but also cache coherency
 	* Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-
 	  fetching
 	* Thread control: In a low latency, high throughput system with balanced flow, you can
@@ -88,7 +89,9 @@ SLIDE 10: Caching
 	* Speed of cache access is measured in cycles, but generally occurs in nanoseconds
 	* Registers are obvious
 	* Store buffers disambiguate memory access and manage dependencies for instructions (loads 
-	  and stores) occurring out of program order
+	  and stores) occurring out of program order.  While a request for data to be stored to an L2 cache line is outstanding, the data is temporarily stored on one or more store buffers on the processor itself.  On an Intel CPU, you only get 4 at a time.  No loop should write to more than these 4 spaces at a time for maximum speed (write combining).  Split logic up so that separate loop iterations execute sequentially for more speed.
+	* Note that store barriers are flushed when a memory barrier is hit - best to model a 
+	  problem so that barriers are hit at the boundary of the work unit.  Change a variable last.
 	* Caches are STATIC Random Access Memory (bistable latching circuitry), does not need to be 
 	  periodically refreshed like DYNAMIC RAM used in main memory (charged capacitors "leak" the charge denoting whether the bit is 0 or 1, so data "fades").  DRAM is much simpler - one transister and a capacitor per bit versus 6 in SRAM, and thus much higher densities (hundreds of billions of transistors and capacitors  on a single memory chip).  There's even non-volatile SRAM which maintains data even when power is lost.
 	* Note: Your fancy i7 processor has an 8MB on-die unified L3 cache that is inclusive, shared
@@ -102,7 +105,7 @@ SLIDE 10: Caching
 Slide 11: Cache Lines
 
 	* Data is not moved in bytes or words, but in cache lines/cache blocks (32-256 bytes 
-	  depending on the processor, usually 64)
+	  depending on the processor, usually 64) as buckets in the unchained hashmap
 	* If two variables are on the same cache line and written to by different threads, they 
 	  present the same problems of write contention as if they were one variable ("false sharing")
 	* For performance, you must ensure that independent but concurrently written data are on 
