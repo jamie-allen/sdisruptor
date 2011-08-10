@@ -198,6 +198,62 @@ August 10, 2011
 
 !SLIDE transition=fade
 
+# SDisruptor
+
+* My Scala port: http://github.com/jamie-allen/sdisruptor
+	* Array-based
+	* Order of execution matters
+	* For comprehensions
+	* Companion objects
+
+!SLIDE transition=fade
+
+# SDisruptor: Arrays
+
+    class RingBuffer[T <: AbstractEntry : ClassManifest](entryFactory: EntryFactory[T], 
+    								size: Int,
+                    var claimStrategyOption: Symbol,
+                    var waitStrategyOption: Symbol) extends ProducerBarrier[T] {
+      val entries: Array[T] = new Array[T](sizeAsPowerOfTwo)
+
+!SLIDE transition=fade
+
+# SDisruptor: Order of Execution
+
+    var p1, p2, p3, p4, p5, p6, p7: Long = -1L  // cache line padding
+    @volatile private var _sequence: Long = RingBuffer.InitialCursorValue
+    var p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
+
+!SLIDE transition=fade
+
+# SDisruptor: For Comprehensions
+
+  	for (i <- 0 until upperBounds.length) {
+	    if (0L != counts(i)) {
+        val upperBound = Math.min(upperBounds(i), maxValue)
+        val midPoint = lowerBound + ((upperBound - lowerBound) / 2L)
+
+        val intervalTotal = new BigDecimal(midPoint).multiply(new BigDecimal(counts(i)))
+        total = total.add(intervalTotal)
+	    }
+
+	    lowerBound = Math.max(upperBounds(i) + 1L, minValue)
+  	}
+
+!SLIDE transition=fade
+
+# SDisruptor: For Comprehensions
+
+    // for (i <- counts.length - 1 until -1 by -1) {
+    for (i <- counts.indices.reverse) { // indices is O(1)!
+      if (0L != counts(i)) {
+        tailCount += counts(i)
+        if (tailCount >= tailTotal) return upperBounds(i)
+      }
+    }
+
+!SLIDE transition=fade
+
 # Links
 
 * Blog: Processing 1M TPS with Axon Framework and the Disruptor: http://blog.jteam.nl/2011/07/20/processing-1m-tps-with-axon-framework-and-the-disruptor/
@@ -208,7 +264,5 @@ August 10, 2011
 * Trisha Gee's Mechanitis Blog: http://mechanitis.blogspot.com/
 * Disruptor Wizard (simplifying dependency wiring): http://github.com/ajsutton/disruptorWizard
 * The Demise of the Low Level Programmer: http://altdevblogaday.com/2011/08/06/demise-low-level-programmer/
-
-* My Scala port: http://github.com/jamie-allen/sdisruptor
 
 Martin and his team will be presenting at JavaOne 2011
