@@ -62,7 +62,7 @@ But why implement it on the JVM instead of C++ or a native implementation?
 .notes Never release the core to the kernel (thus maintaining your L3 cache).  Note that if you do pin to a core, avoid CPU0 where most hardware interrupts are handled (note that you may need to use APIC to configure how IRQs are distributed, in conjunction with configuring irqbalance to ignore certain CPUs)
 Avoid lock arbitration 
 Minimize usage of memory barriers - they guarantee order, but also cache coherency
-Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-	  fetching
+Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-fetching
 Thread control: In a low latency, high throughput system with balanced flow, you can assign a thread to a core from the JVM by never releasing control of the thread (wait, ForkJoin)
 
 * Control the core
@@ -116,9 +116,9 @@ Maximizing the use of "cache lines" (64 bytes, 8 longs of 8 bytes each, avoiding
 .notes Processors are much faster than memory now, and to optimize their performance, they use varying levels of caches (registers, store buffers, L1, L2, L3 and main memory) to support the execution of instructions, and they are kept coherent via message passing protocols
 Speed of cache access is measured in cycles, but generally occurs in nanoseconds
 Registers are obvious (on-processor storage for WIP)
-Store buffers disambiguate memory access and manage dependencies for instructions (loads 	  and stores) occurring out of program order.  While a request for data to be stored to an L2 cache line is outstanding, the data is temporarily stored on one or more store buffers on the processor itself.  On an Intel CPU, you only get 4 at a time.  No loop should write to more than these 4 spaces at a time for maximum speed (write combining).  Split logic up so that separate loop iterations execute sequentially for more speed.
+Store buffers disambiguate memory access and manage dependencies for instructions (loads and stores) occurring out of program order.  While a request for data to be stored to an L2 cache line is outstanding, the data is temporarily stored on one or more store buffers on the processor itself.  On an Intel CPU, you only get 4 at a time.  No loop should write to more than these 4 spaces at a time for maximum speed (write combining).  Split logic up so that separate loop iterations execute sequentially for more speed.
 Note that store barriers are flushed when a memory barrier is hit - best to model a problem so that barriers are hit at the boundary of the work unit.  Change a variable last.
-Caches are STATIC Random Access Memory (bistable latching circuitry), does not need to be periodically refreshed like DYNAMIC RAM used in main memory (charged capacitors "leak" the charge denoting whether the bit is 0 or 1, so data "fades").  DRAM is much simpler - one transister and a capacitor per bit versus 6 in SRAM, and thus much higher densities (hundreds of billions of transistors and capacitors  on a single memory chip).  There's even non-volatile SRAM which maintains data even when power is lost.
+Caches are STATIC Random Access Memory (bistable latching circuitry), does not need to be periodically refreshed like DYNAMIC RAM used in main memory (charged capacitors "leak" the charge denoting whether the bit is 0 or 1, so data "fades").  DRAM is much simpler - one transistor and a capacitor per bit versus 6 in SRAM, and thus much higher densities (hundreds of billions of transistors and capacitors  on a single memory chip).  There's even non-volatile SRAM which maintains data even when power is lost.
 Note: Your fancy i7 processor has an 8MB on-die unified L3 cache that is inclusive, shared by all cores
 Some processors have rules for the caches, such strictly inclusive, where all data in L1 must also be in L2.  Athlon processors are exclusive and can hold more data, which is great when L1 is comparable in size to L2, diminishes when L2 is many times larger.  Not universal, so you have to know your processors policy.
 One of the most expensive operations for a process is a cache read miss - when data is looked for in one of the caches and not found, so it must allocate space (evicting something else) and go to the next level to retrieve the data (note: write misses have no penalty because the data can be copied in background)
@@ -159,7 +159,7 @@ Replacement, due to eviction choice of the replacement policy such as LRU (perfe
 !SLIDE transition=fade
 
 # Striding
-.notes When data is accessed from main memory in a predictable fashion (such as walking the data in a predictable "stride"), the processor can optimize by pre-fetching data it expects will be needed shortly to avoid "compulsory cache misses". This ring buffer has a predicatable pattern of access
+.notes When data is accessed from main memory in a predictable fashion (such as walking the data in a predictable "stride"), the processor can optimize by pre-fetching data it expects will be needed shortly to avoid "compulsory cache misses". This ring buffer has a predictable pattern of access
 Note that data structures such as linked lists and trees tend to have nodes that are more widely distributed (non-contiguous) in memory and therefore no predictable strides for performance optimization, which forces the processor to perform main memory direct access more often at the time the data is needed at significant performance cost
 
 * Predictable access begets pre-fetching
@@ -215,7 +215,7 @@ If more than one producer, they can race each other for slots and use CAS on the
 When an entry in the ring buffer is claimed by a producer, it copies data into one of the pre-allocated elements
 This two-phase operation - getting the sequence number, copying the data and then explicitly committing to Producer Barrier, separates the action of putting the data into a slot and making it visible.  It also helps to maintain two-phase semantics if more than one Disruptor is accessed by a producer
 Producers can check with Consumers to see where they are so they don't overwrite ring buffer slots still in use
-ClaimStrategy: single threaded or multithreaded (CAS Atomici vars)
+ClaimStrategy: single threaded or multithreaded (CAS Atomic vars)
 (TOBY) Disruptor effects a total ordering on consumption of incoming requests, so its IMPERATIVE to make sure you circuit-break anything which could possibly go unbounded (e.g. socket timeouts, disk access, etc)
 
 * Used for Network IO, file system reads, etc
@@ -340,7 +340,7 @@ Replay events from a snapshot to see what happened when something goes awry
 # SDisruptor: For Comprehensions
 
     // for (i <- counts.length - 1 until -1 by -1) {
-    for (i <- counts.indices.reverse) { // indices.reverse is O(1), per Seth Tisue!
+    for (i <- counts.indices.reverse) { // indices.reverse is O(1)
       if (0L != counts(i)) {
         tailCount += counts(i)
         if (tailCount >= tailTotal) return upperBounds(i)
