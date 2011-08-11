@@ -28,7 +28,7 @@ This is a decidedly NOT functional implementation.  No referential transparency,
 !SLIDE transition=fade
 
 # How Did They Arrive at the Disruptor
-.notes 	Initiative started several years ago at Betfair, with the Flywheel and 100x projects, trying to glean more performance from their system
+.notes 	Initiative started several years ago at Betfair with Martin Thompson and Matt Youill (CTO of Betfair), with the Flywheel and 100x projects, trying to glean more performance from their system
 Looked into J2EE, SEDA, Actors, etc - couldn't get the throughput they desired
 SEDA: complex, event-driven application divided into stages connected by queues, supporting back pressure and load management
 Actors are a subset of SEDA, with lock-free semantics
