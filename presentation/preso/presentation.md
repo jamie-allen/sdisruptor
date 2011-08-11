@@ -57,7 +57,7 @@ But why implement it on the JVM instead of C++ or a native implementation?
 * "The most amazing achievement of the computer software industry is its continuing cancellation of the steady and staggering gains made by the computer hardware industry." - Henry Peteroski, as quoted on Martin's blog
 
 !SLIDE transition=fade
-.notes Never release the core to the kernel (thus maintaining your L3 cache)
+.notes Never release the core to the kernel (thus maintaining your L3 cache).  Note that if you do pin to a core, avoid CPU0 where hardware interrupts are handled
 Avoid lock arbitration 
 Minimize usage of memory barriers - they guarantee order, but also cache coherency
 Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-	  fetching
@@ -176,6 +176,16 @@ What if you were able to design your system so that you didn't have to think abo
 
 * Reuse of memory prevents GC and compaction
 * Restart every day to clear the heap
+
+!SLIDE transition=fade
+.notes Zing is a proprietary VM implementation based on Oracle's HotSpot.  But the use of C4 is exactly the kind of performance-impacting GC that LMAX is trying to avoid with the Disruptor
+The Vega appliance gets its gains from pauseless GC and Optimistic Thread Concurrency that "minimizes the impact of scalability bottlenecks caused by synchronization and lock contentions.  Same thing, exactly what the Disruptor avoids with its design.
+Both solutions may be an excellent fit for your application, but not for the Disruptor
+
+# Why Not Try Azul Solutions?
+
+* Zing JVM uses C4 (Continuously Concurrent Compacting Collector)
+* Vega Compute Appliance (More pauseless GC and Optimistic Thread Concurrency)
 
 !SLIDE transition=fade
 .notes Per Daniel Spiewak, was considered for a core data structure in Clojure before the bit-mapped vector trie was selected by Rich Hickey - FUNCTIONAL RING BUFFER WITH VECTOR STAMPS
