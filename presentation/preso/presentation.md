@@ -1,9 +1,9 @@
 !SLIDE title-page
+
+## LMAX Disruptor
 .notes We're hiring
 Typesafe Scala training with Heiko Seeberger and Josh Suereth at Chariot first week of October?
 Any interest in a one-day seminar on Scala in the enterprise?  Scala & Spring, Scala & OSGi, Scala & GridGain, etc
-
-## LMAX Disruptor
 
 Jamie Allen
 
@@ -14,11 +14,11 @@ jallen@chariotsolutions.com
 August 10, 2011
 
 !SLIDE transition=fade
+
+# There is nothing new here
 .notes The "virtual" nature of our runtime and deployment environment has desensitized us as developers to the impact of our design and implementation decisions
 It flies in the face of popular concurrency abstractions to show what can be accomplished when implementing simple code in a highly-optimized fashion
 This is a decidedly NOT functional implementation.  No referential transparency, lots of shared mutable state
-
-# There is nothing new here
 
 * 6 million TPS
 * "Virtual" runtime and deployment environment
@@ -26,25 +26,25 @@ This is a decidedly NOT functional implementation.  No referential transparency,
 * Not functional?!? (OMG! ONOZ!)
 
 !SLIDE transition=fade
+
+# How Did They Arrive at the Disruptor
 .notes 	Initiative started several years ago at Betfair, with the Flywheel and 100x projects, trying to glean more performance from their system
 Looked into J2EE, SEDA, Actors, etc - couldn't get the throughput they desired
 SEDA: complex, event-driven application divided into stages connected by queues, supporting back pressure and load management
 Actors are a subset of SEDA, with lock-free semantics
 Neither project made it to production due to legacy integration issues
 
-# How Did They Arrive at the Disruptor
-
 * Betfair attempts the Flywheel and 100x projects
 * Looked into J2EE, SEDA, Actors, etc
 
 !SLIDE transition=fade
+
+# How Did They Arrive at the Disruptor
 .notes Betfair spun off Tradefair into LMAX, Martin Thompson leaves Matt Youill, works with Mike Barker and the rest of the team on their clean slate, greenfield Disruptor implementation
 So named because it has elements for dealing with graphs of dependencies comparable to the Java7 Phaser concurrency type, introduced in support of ForkJoin
 And if there's a Phaser, there should be a Disruptor, right?
 (TOBY) Disruptor serves the purpose of a queue in a SEDA architecture
 But why implement it on the JVM instead of C++ or a native implementation?
-
-# How Did They Arrive at the Disruptor
 
 * Betfair begets Tradefair/LMAX
 * LMAX implements with a clean slate
@@ -57,13 +57,13 @@ But why implement it on the JVM instead of C++ or a native implementation?
 * "The most amazing achievement of the computer software industry is its continuing cancellation of the steady and staggering gains made by the computer hardware industry." - Henry Peteroski, as quoted on Martin's blog
 
 !SLIDE transition=fade
+
+# Keys to the Disruptor's Performance
 .notes Never release the core to the kernel (thus maintaining your L3 cache).  Note that if you do pin to a core, avoid CPU0 where hardware interrupts are handled
 Avoid lock arbitration 
 Minimize usage of memory barriers - they guarantee order, but also cache coherency
 Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-	  fetching
 Thread control: In a low latency, high throughput system with balanced flow, you can assign a thread to a core from the JVM by never releasing control of the thread (wait, ForkJoin)
-
-# Keys to the Disruptor's Performance
 
 * Control the core
 * Avoid lock arbitration 
@@ -72,6 +72,8 @@ Thread control: In a low latency, high throughput system with balanced flow, you
 * Thread control
 
 !SLIDE transition=fade
+
+# Avoid Locks
 .notes Locks, extremely non-performant due to context switching in the kernel which suspend threads waiting on a lock until it is released
 Note that during a kernel context switch, the OS may decide to perform other tasks not related to your process, thus losing valuable cycles
 CAS semantics are much better, since no kernel context switch is required for lock arbitration, but the processor must still lock its instruction pipeline to ensure atomicity and introduce a memory barrier to ensure that changes are made visible to all threads
@@ -79,30 +81,28 @@ Memory barriers are used by processors to indicate sections of code where the or
 Processors only need to guarantee that the execution of instructions gives the same result, regardless of order, and thus perform instructions out of order frequently to enhance performance
 Memory barriers (volatile) specify where no optimizations can be performed to ensure that ordering is correct at runtime
 
-# Avoid Locks
-
 * Context switching is painful
 * CAS semantics are much better, but no panacea
 * Limited use of memory barriers are the key 
 
 !SLIDE transition=fade
+
+# What's Wrong With Queues
 .notes Unbounded queues use linked lists, which are not contiguous and therefore do not support striding (prefetching cache lines)
 Bounded queues use arrays, where the head (dequeuing) and tail (enqueuing) are the primary points of write contention, but also have a tendency to share a cache line
 In Java, queues are also a significant source of garbage - the memory for data must be allocated, and if unbounded, the linked list node must also be allocated; when dereferenced, all of these objects must be reclaimed
-
-# What's Wrong With Queues
 
 * Unbounded linked lists don't "stride"
 * Bounded arrays share cache lines
 * Cause heavy GC
 
 !SLIDE transition=fade
+
+# Memory Allocation
 .notes What if you designed your system to utilize on-board caches for a core as effectively as possible?
 Allocate a large ring buffer of byte arrays on startup, and copy data into those arrays as received/handled
 Sequencing of data in main memory is also important - as the core understands your usage of data from memory, it can pre-load the cache with data it knows you need next.  You need to understand how you are allocating data and what that means (see padding)
 Maximizing the use of "cache lines" (64 bytes, 8 longs of 8 bytes each, avoiding misses and "false sharing" - which aids with...
-
-# Memory Allocation
 
 * Cache is king
 * Pre-allocate and reuse
@@ -111,6 +111,8 @@ Maximizing the use of "cache lines" (64 bytes, 8 longs of 8 bytes each, avoiding
 * Cache lines and "false sharing"
 
 !SLIDE transition=fade
+
+# Caching
 .notes Processors are much faster than memory now, and to optimize their performance, they use varying levels of caches (registers, store buffers, L1, L2, L3 and main memory) to support the execution of instructions, and they are kept coherent via message passing protocols
 Speed of cache access is measured in cycles, but generally occurs in nanoseconds
 Registers are obvious (on-processor storage for WIP)
@@ -122,8 +124,6 @@ Some processors have rules for the caches, such strictly inclusive, where all da
 One of the most expensive operations for a process is a cache read miss - when data is looked for in one of the caches and not found, so it must allocate space (evicting something else) and go to the next level to retrieve the data (note: write misses have no penalty because the data can be copied in background)
 The cache "hit rate" measures the effectiveness of your program/algorithm in using a cache
 
-# Caching
-
 * registers
 * store buffers
 * L1 (SRAM)
@@ -132,23 +132,23 @@ The cache "hit rate" measures the effectiveness of your program/algorithm in usi
 * Main memory (DRAM)
 
 !SLIDE transition=fade
+
+# Cache Lines
 .notes Data is not moved in bytes or words, but in cache lines/cache blocks (32-256 bytes depending on the processor, usually 64) as buckets in the unchained hashmap
 If two variables are on the same cache line and written to by different threads, they present the same problems of write contention as if they were one variable ("false sharing")
 For performance, you must ensure that independent but concurrently written data are on separate cache lines.  PAD your data to make sure.
-
-# Cache Lines
 
 * Cache "misses" are expensive
 * Variables shouldn't share a cache line
 
 !SLIDE transition=fade
+
+# Cache Misses
 .notes Compulsory/Cold, happens the first time a datum is accessed, can be ameliorated through pre-fetching
 Capacity, happens due to the finite space of a cache regardless of associativity or block size.  Just not there because there is no room, you're using a lot of data at once.  CPU caches almost always have every line filled, almost every allocation requires eviction
 Conflict, avoidable if the cache had not evicted an entry earlier (a victim, which can also be cached in a "victim cache")
 Mapping, due to degree of associativity of data (if data can go anywhere, as opposed to direct mapped where it must go in a specific memory space)
 Replacement, due to eviction choice of the replacement policy such as LRU (perfect replacement policy: an oracle that looks into the future to find a cache entry which is actually not going to be hit)
-
-# Cache Misses
 
 * Compulsory/Cold
 * Capacity
@@ -157,46 +157,46 @@ Replacement, due to eviction choice of the replacement policy such as LRU (perfe
 	* Replacement
 
 !SLIDE transition=fade
-.notes When data is accessed from main memory in a predictable fashion (such as walking the data in a predictable "stride"), the processor can optimize by pre-fetching data it expects will be needed shortly to avoid "compulsory cache misses". This ring buffer has a predicatable pattern of access
-Note that data structures such as linked lists and trees tend to have nodes that are more widely distributed (non-contiguous) in memory and therefore no predictable strides for performance optimization, which forces the processor to perform main memory direct access more often at the time the data is needed at significant performance cost
 
 # Striding
+.notes When data is accessed from main memory in a predictable fashion (such as walking the data in a predictable "stride"), the processor can optimize by pre-fetching data it expects will be needed shortly to avoid "compulsory cache misses". This ring buffer has a predicatable pattern of access
+Note that data structures such as linked lists and trees tend to have nodes that are more widely distributed (non-contiguous) in memory and therefore no predictable strides for performance optimization, which forces the processor to perform main memory direct access more often at the time the data is needed at significant performance cost
 
 * Predictable access begets pre-fetching
 * Data structures must be contiguous
 
 !SLIDE transition=fade
+
+# Garbage Collection
 .notes The reuse of array buffers guarantees no GC of mature objects, thus no global GC compaction to "stop the world" - limit GC to short- and long-lived objects, not those in the middle
 Latency occurs as those objects are copied between generations, which is minimized by reusing objects so that they only traverse the generations once
 Restart the machine every day to clear the heap, guarantee no compaction (can go 3-4 days without worrying about it, but this is a safety measure)
 How much time do we all waste trying to find the optimal GC strategy for a system?  
 What if you were able to design your system so that you didn't have to think about it, because YOU CONTROL how much GC and compaction is taking place?
 
-# Garbage Collection
-
 * Reuse of memory prevents GC and compaction
 * Restart every day to clear the heap
 
 !SLIDE transition=fade
+
+# Why Not Try Azul Solutions?
 .notes Zing is a proprietary VM implementation based on Oracle's HotSpot.  But the use of C4 is exactly the kind of performance-impacting GC that LMAX is trying to avoid with the Disruptor
 The Vega appliance gets its gains from pauseless GC and Optimistic Thread Concurrency that "minimizes the impact of scalability bottlenecks caused by synchronization and lock contentions.  Same thing, exactly what the Disruptor avoids with its design
 Both solutions may be an excellent fit for your application, but not for the Disruptor specifically
-
-# Why Not Try Azul Solutions?
 
 * Zing JVM uses C4 (Continuously Concurrent Compacting Collector)
 * Vega Compute Appliance (More pauseless GC and Optimistic Thread Concurrency)
 * These offerings may be great for optimizing other parts of your application.  YMMV.
 
 !SLIDE transition=fade
+
+# Implementation: Ring Buffer
 .notes Per Daniel Spiewak, was considered for a core data structure in Clojure before the bit-mapped vector trie was selected by Rich Hickey - FUNCTIONAL RING BUFFER WITH VECTOR STAMPS
 The Ring Buffer is a bounded, pre-allocated data structure, and the allocated data elements will exist for the life of the Disruptor instance
 Since the data is allocated all at once on startup, it is highly likely that the memory will be contiguous in main memory and will support effective striding for the caches
 The "ring" characteristics of the array buffer promote resequencing - you never stop traversing the queue (sequence number increases, use MOD by ring size to get slot)
 On most processors, there is a high cost for a remainder calculation on a sequence number which determines the slot in the ring, but it can be greatly reduced by making the ring size a power of 2; use a bit mask of ring size minus one to perform the remainder operation efficiently as compared to sequence number % size (600x faster?)
 (TOBY) Networking software and devices have been using this technique for years - every networking card has been powered by a pair of ring buffers
-
-# Implementation: Ring Buffer
 
 * Bounded
 * Pre-allocated all at once
@@ -207,6 +207,8 @@ On most processors, there is a high cost for a remainder calculation on a sequen
 <img src="ringbuffer.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
+
+# Implementation: Producers
 .notes Used for network IO, file system reads, etc
 Basic counter for single producer, atomic int/long for multiple producers (using CAS to protect the counter)
 If more than one producer, they can race each other for slots and use CAS on the sequence number for next available slot to use
@@ -215,8 +217,6 @@ This two-phase operation - getting the sequence number, copying the data and the
 Producers can check with Consumers to see where they are so they don't overwrite ring buffer slots still in use
 ClaimStrategy: single threaded or multithreaded (CAS Atomici vars)
 (TOBY) Disruptor effects a total ordering on consumption of incoming requests, so its IMPERATIVE to make sure you circuit-break anything which could possibly go unbounded (e.g. socket timeouts, disk access, etc)
-
-# Implementation: Producers
 
 * Used for Network IO, file system reads, etc
 * Sequencing
@@ -228,6 +228,8 @@ ClaimStrategy: single threaded or multithreaded (CAS Atomici vars)
 <img src="producer.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
+
+# Implementation: Consumers
 .notes Consumers that represent the same dependency share a ConsumerBarrier instance, but only one consumer per CB can have write access to any field in the entry
 Consumers wait for a sequence to become available in the ring buffer before they read the entry using a WaitStrategy defined in the ConsumerBarrier; note that various strategies exist for waiting, and the choice depends on the priority of CPU resource versus latency and throughput
 The sequential nature of the ring buffer allows you to introduce dependencies between processes that need something to happen before they move on (how you compose Consumers by ConsumerBarrier)
@@ -235,8 +237,6 @@ If CPU resource is more important, the consumer can wait on a condition variable
 Consumers loop, checking the cursor representing the current available sequence in the ring buffer, which can be done with or without thread yield by trading CPU resource against latency - no lock or CAS to slow it down
 Consumers merely provide a BatchHandler implementation that receives callbacks when data is available for consumption 
 Read/Writes are minimized due to the performance cost of the volatile memory barrier
-
-# Implementation: Consumers
 
 * Composable by ConsumerBarrier
 * Sequencing
@@ -246,11 +246,11 @@ Read/Writes are minimized due to the performance cost of the volatile memory bar
 <img src="consumer.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
+
+# Dependency Graphs
 .notes With a graph like (ie: diamond) model of producers and consumers (such as actors), queues are required to manage interactions between each of the elements
 The single ring buffer replaces this in a single data structure for all of the elements, resulting in greatly reduced fixed costs of execution, increasing throughput and reducing latency
 Care must be taken to ensure that state written by independent consumers doesn't result in the false sharing of cache lines
-
-# Dependency Graphs
 
 * One data structure for all consumers
 * Increased throughput
@@ -259,6 +259,8 @@ Care must be taken to ensure that state written by independent consumers doesn't
 <img src="consumer.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
+
+# Batching Effect
 .notes This is the real win for latency
 When a consumer falls behind due to latency, it has the ability to process all ring buffer elements up to the last committed by the producer, a capability not found in queues
 Lagging consumers can therefore "catch up", increasing throughput and reducing/smoothing latency; near constant time for latency regardless of load, until memory subsystem is saturated, at which point the profile is linear following Little's Law
@@ -267,8 +269,6 @@ Producers also have to manage a wait strategy when there are multiples of them; 
 Performs better as load increases!  
 Compared to "J" curve effect on latency observed with queues as load increases
 
-# Batching Effect
-
 * Catch-up capability
 * Performs better as load increases
 * "J" curve effect on latency with queues is gone
@@ -276,10 +276,10 @@ Compared to "J" curve effect on latency observed with queues as load increases
 <img src="disruptor.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
-.notes Daily snapshot and restart to clear all memory
-Replay events from a snapshot to see what happened when something goes awry
 
 # Event Sourcing
+.notes Daily snapshot and restart to clear all memory
+Replay events from a snapshot to see what happened when something goes awry
 
 * Daily snapshot
 * Daily restart to clear all memory
