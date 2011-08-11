@@ -59,7 +59,7 @@ But why implement it on the JVM instead of C++ or a native implementation?
 !SLIDE transition=fade
 
 # Keys to the Disruptor's Performance
-.notes Never release the core to the kernel (thus maintaining your L3 cache).  Note that if you do pin to a core, avoid CPU0 where hardware interrupts are handled
+.notes Never release the core to the kernel (thus maintaining your L3 cache).  Note that if you do pin to a core, avoid CPU0 where most hardware interrupts are handled (note that you may need to use APIC to configure how IRQs are distributed, in conjunction with configuring irqbalance to ignore certain CPUs)
 Avoid lock arbitration 
 Minimize usage of memory barriers - they guarantee order, but also cache coherency
 Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-	  fetching
