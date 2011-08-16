@@ -58,60 +58,6 @@ But why implement it on the JVM instead of C++ or a native implementation?
 
 !SLIDE transition=fade
 
-# Keys to the Disruptor's Performance
-.notes Never release the core to the kernel (thus maintaining your L3 cache).  Note that if you do pin to a core, avoid CPU0 where most hardware interrupts are handled (note that you may need to use APIC to configure how IRQs are distributed, in conjunction with configuring irqbalance to ignore certain CPUs)
-Avoid lock arbitration 
-Minimize usage of memory barriers - they guarantee order, but also cache coherency
-Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-fetching
-Thread control: In a low latency, high throughput system with balanced flow, you can assign a thread to a core from the JVM by never releasing control of the thread (wait, ForkJoin)
-
-* Control the core
-* Avoid lock arbitration 
-* Minimize usage of memory barriers
-* Pre-allocate and reuse memory
-* Thread control
-
-!SLIDE transition=fade
-
-# Avoid Locks
-.notes Locks, extremely non-performant due to context switching in the kernel which suspend threads waiting on a lock until it is released
-Note that during a kernel context switch, the OS may decide to perform other tasks not related to your process, thus losing valuable cycles
-CAS semantics are much better, since no kernel context switch is required for lock arbitration, but the processor must still lock its instruction pipeline to ensure atomicity and introduce a memory barrier to ensure that changes are made visible to all threads
-Memory barriers are used by processors to indicate sections of code where the ordering of memory updates matters - all memory changes appear in order at the point required (note: compilers can add software MBs in addition to the processor's, which is how Java's volatile keyword works)
-Processors only need to guarantee that the execution of instructions gives the same result, regardless of order, and thus perform instructions out of order frequently to enhance performance
-Memory barriers (volatile) specify where no optimizations can be performed to ensure that ordering is correct at runtime
-
-* Context switching is painful
-* CAS semantics are much better, but no panacea
-* Limited use of memory barriers are the key 
-
-!SLIDE transition=fade
-
-# What's Wrong With Queues
-.notes Unbounded queues use linked lists, which are not contiguous and therefore do not support striding (prefetching cache lines)
-Bounded queues use arrays, where the head (dequeuing) and tail (enqueuing) are the primary points of write contention, but also have a tendency to share a cache line
-In Java, queues are also a significant source of garbage - the memory for data must be allocated, and if unbounded, the linked list node must also be allocated; when dereferenced, all of these objects must be reclaimed
-
-* Unbounded linked lists don't "stride"
-* Bounded arrays share cache lines
-* Cause heavy GC
-
-!SLIDE transition=fade
-
-# Memory Allocation
-.notes What if you designed your system to utilize on-board caches for a core as effectively as possible?
-Allocate a large ring buffer of byte arrays on startup, and copy data into those arrays as received/handled
-Sequencing of data in main memory is also important - as the core understands your usage of data from memory, it can pre-load the cache with data it knows you need next.  You need to understand how you are allocating data and what that means (see padding)
-Maximizing the use of "cache lines" (64 bytes, 8 longs of 8 bytes each, avoiding misses and "false sharing" - which aids with...
-
-* Cache is king
-* Pre-allocate and reuse
-* Not functional programming
-* Sequence data
-* Cache lines and "false sharing"
-
-!SLIDE transition=fade
-
 # Caching
 .notes Processors are much faster than memory now, and to optimize their performance, they use varying levels of caches (registers, store buffers, L1, L2, L3 and main memory) to support the execution of instructions, and they are kept coherent via message passing protocols
 Speed of cache access is measured in cycles, but generally occurs in nanoseconds
@@ -176,6 +122,60 @@ What if you were able to design your system so that you didn't have to think abo
 
 * Reuse of memory prevents GC and compaction
 * Restart every day to clear the heap
+
+!SLIDE transition=fade
+
+# Keys to the Disruptor's Performance
+.notes Never release the core to the kernel (thus maintaining your L3 cache).  Note that if you do pin to a core, avoid CPU0 where most hardware interrupts are handled (note that you may need to use APIC to configure how IRQs are distributed, in conjunction with configuring irqbalance to ignore certain CPUs)
+Avoid lock arbitration 
+Minimize usage of memory barriers - they guarantee order, but also cache coherency
+Pre-allocate and reuse sequential memory to avoid GC and compaction and enable cache pre-fetching
+Thread control: In a low latency, high throughput system with balanced flow, you can assign a thread to a core from the JVM by never releasing control of the thread (wait, ForkJoin)
+
+* Control the core
+* Avoid lock arbitration 
+* Minimize usage of memory barriers
+* Pre-allocate and reuse memory
+* Thread control
+
+!SLIDE transition=fade
+
+# Avoid Locks
+.notes Locks, extremely non-performant due to context switching in the kernel which suspend threads waiting on a lock until it is released
+Note that during a kernel context switch, the OS may decide to perform other tasks not related to your process, thus losing valuable cycles
+CAS semantics are much better, since no kernel context switch is required for lock arbitration, but the processor must still lock its instruction pipeline to ensure atomicity and introduce a memory barrier to ensure that changes are made visible to all threads
+Memory barriers are used by processors to indicate sections of code where the ordering of memory updates matters - all memory changes appear in order at the point required (note: compilers can add software MBs in addition to the processor's, which is how Java's volatile keyword works)
+Processors only need to guarantee that the execution of instructions gives the same result, regardless of order, and thus perform instructions out of order frequently to enhance performance
+Memory barriers (volatile) specify where no optimizations can be performed to ensure that ordering is correct at runtime
+
+* Context switching is painful
+* CAS semantics are much better, but no panacea
+* Limited use of memory barriers are the key 
+
+!SLIDE transition=fade
+
+# What's Wrong With Queues
+.notes Unbounded queues use linked lists, which are not contiguous and therefore do not support striding (prefetching cache lines)
+Bounded queues use arrays, where the head (dequeuing) and tail (enqueuing) are the primary points of write contention, but also have a tendency to share a cache line
+In Java, queues are also a significant source of garbage - the memory for data must be allocated, and if unbounded, the linked list node must also be allocated; when dereferenced, all of these objects must be reclaimed
+
+* Unbounded linked lists don't "stride"
+* Bounded arrays share cache lines
+* Cause heavy GC
+
+!SLIDE transition=fade
+
+# Memory Allocation
+.notes What if you designed your system to utilize on-board caches for a core as effectively as possible?
+Allocate a large ring buffer of byte arrays on startup, and copy data into those arrays as received/handled
+Sequencing of data in main memory is also important - as the core understands your usage of data from memory, it can pre-load the cache with data it knows you need next.  You need to understand how you are allocating data and what that means (see padding)
+Maximizing the use of "cache lines" (64 bytes, 8 longs of 8 bytes each, avoiding misses and "false sharing" - which aids with...
+
+* Cache is king
+* Pre-allocate and reuse
+* Not functional programming
+* Sequence data
+* Cache lines and "false sharing"
 
 !SLIDE transition=fade
 
