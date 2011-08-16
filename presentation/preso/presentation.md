@@ -70,12 +70,7 @@ Some processors have rules for the caches, such strictly inclusive, where all da
 One of the most expensive operations for a process is a cache read miss - when data is looked for in one of the caches and not found, so it must allocate space (evicting something else) and go to the next level to retrieve the data (note: write misses have no penalty because the data can be copied in background)
 The cache "hit rate" measures the effectiveness of your program/algorithm in using a cache
 
-* registers
-* store buffers
-* L1 (SRAM)
-* L2 (SRAM)
-* L3 (SRAM)
-* Main memory (DRAM)
+<img src="cache.png" class="illustration" note="final slash needed"/>
 
 !SLIDE transition=fade
 
