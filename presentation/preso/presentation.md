@@ -74,16 +74,6 @@ The cache "hit rate" measures the effectiveness of your program/algorithm in usi
 
 !SLIDE transition=fade
 
-# Cache Lines
-.notes Data is not moved in bytes or words, but in cache lines/cache blocks (32-256 bytes depending on the processor, usually 64) as buckets in the unchained hashmap
-If two variables are on the same cache line and written to by different threads, they present the same problems of write contention as if they were one variable ("false sharing")
-For performance, you must ensure that independent but concurrently written data are on separate cache lines.  PAD your data to make sure.
-
-* Cache "misses" are expensive
-* Variables shouldn't share a cache line
-
-!SLIDE transition=fade
-
 # Cache Misses
 .notes Compulsory/Cold, happens the first time a datum is accessed, can be ameliorated through pre-fetching
 Capacity, happens due to the finite space of a cache regardless of associativity or block size.  Just not there because there is no room, you're using a lot of data at once.  CPU caches almost always have every line filled, almost every allocation requires eviction
@@ -96,6 +86,16 @@ Replacement, due to eviction choice of the replacement policy such as LRU (perfe
 * Conflict
 	* Mapping
 	* Replacement
+
+!SLIDE transition=fade
+
+# Cache Lines
+.notes Data is not moved in bytes or words, but in cache lines/cache blocks (32-256 bytes depending on the processor, usually 64) as buckets in the unchained hashmap
+If two variables are on the same cache line and written to by different threads, they present the same problems of write contention as if they were one variable ("false sharing")
+For performance, you must ensure that independent but concurrently written data are on separate cache lines.  PAD your data to make sure.
+
+* Cache "misses" are expensive
+* Variables shouldn't share a cache line
 
 !SLIDE transition=fade
 
