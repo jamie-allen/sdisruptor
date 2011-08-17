@@ -59,8 +59,12 @@
     <target name="build"
             depends="main:prepare"
             description="Build main source code">
-        <scalac destdir="${dir.main.build}" unchecked="on">
+        <scalac destdir="${dir.main.build}" unchecked="off">
             <src path="${dir.main.scala.src}"/>
+            <classpath>
+              <pathelement location="${env.SCALA_HOME}/lib/scala-compiler.jar" />
+              <pathelement location="${env.SCALA_HOME}/lib/scala-library.jar" />
+            </classpath>
             <include name="**/*.scala"/>
         </scalac>
     </target>
