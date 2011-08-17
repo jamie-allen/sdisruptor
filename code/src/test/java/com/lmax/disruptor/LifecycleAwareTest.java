@@ -24,9 +24,11 @@ import org.junit.Test;
 
 import com.jamieallen.sdisruptor.BatchConsumer;
 import com.jamieallen.sdisruptor.BatchHandler;
+import com.jamieallen.sdisruptor.Consumer;
 import com.jamieallen.sdisruptor.ConsumerBarrier;
 import com.jamieallen.sdisruptor.LifecycleAware;
 import com.jamieallen.sdisruptor.RingBuffer;
+import com.jamieallen.sdisruptor.support.TestConsumer;
 import com.lmax.disruptor.support.StubEntry;
 
 public final class LifecycleAwareTest
@@ -36,7 +38,9 @@ public final class LifecycleAwareTest
 
 
     private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16, null, null);
-    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.consumersToTrack_();
+    final TestConsumer consumer = new TestConsumer(ringBuffer.createConsumerBarrier(new Consumer[0]));
+    final TestConsumer[] consumers = new TestConsumer[] { consumer };
+    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(consumers);
     private final LifecycleAwareBatchHandler handler = new LifecycleAwareBatchHandler();
     private final BatchConsumer batchConsumer = new BatchConsumer<StubEntry>(consumerBarrier, handler);
 

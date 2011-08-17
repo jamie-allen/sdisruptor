@@ -15,11 +15,11 @@
  */
 package com.lmax.disruptor.support;
 
+import java.util.concurrent.CountDownLatch;
+
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.lib.action.CustomAction;
-
-import java.util.concurrent.CountDownLatch;
 
 public final class Actions
 {

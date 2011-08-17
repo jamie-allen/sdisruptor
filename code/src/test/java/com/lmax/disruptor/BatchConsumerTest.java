@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 
 import com.jamieallen.sdisruptor.BatchConsumer;
 import com.jamieallen.sdisruptor.BatchHandler;
+import com.jamieallen.sdisruptor.Consumer;
 import com.jamieallen.sdisruptor.ConsumerBarrier;
 import com.jamieallen.sdisruptor.ExceptionHandler;
 import com.jamieallen.sdisruptor.RingBuffer;
@@ -44,12 +45,13 @@ public final class BatchConsumerTest
     private final Sequence lifecycleSequence = context.sequence("lifecycleSequence");
     private final CountDownLatch latch = new CountDownLatch(1);
 
-    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16);
-    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new ConsumerBarrier<StubEntry>[0]);
+    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16, null, null);
+    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new Consumer[0]);
     @SuppressWarnings("unchecked") private final BatchHandler<StubEntry> batchHandler = context.mock(BatchHandler.class);
     private final BatchConsumer batchConsumer = new BatchConsumer<StubEntry>(consumerBarrier, batchHandler);
     {
-        ringBuffer.consumersToTrack_(batchConsumer);
+    		final BatchConsumer[] batchConsumers = new BatchConsumer[] { batchConsumer };
+        ringBuffer.consumersToTrack_(batchConsumers);
     }
 
     @Test(expected = NullPointerException.class)
@@ -85,7 +87,7 @@ public final class BatchConsumerTest
 
         assertEquals(-1L, batchConsumer.sequence());
 
-        ringBuffer.commit(ringBuffer.entry());
+        ringBuffer.commit(ringBuffer.entry(0));
 
         latch.await();
 

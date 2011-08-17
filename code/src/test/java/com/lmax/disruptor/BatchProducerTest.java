@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
+import com.jamieallen.sdisruptor.Consumer;
 import com.jamieallen.sdisruptor.ConsumerBarrier;
 import com.jamieallen.sdisruptor.NoOpConsumer;
 import com.jamieallen.sdisruptor.RingBuffer;
@@ -29,9 +30,11 @@ import com.lmax.disruptor.support.StubEntry;
 public final class BatchProducerTest
 {
     private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 20, null, null);
-    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new ConsumerBarrier<StubEntry>());
+    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new Consumer[0]);
     {
-        ringBuffer.consumersToTrack_(new NoOpConsumer(ringBuffer));
+    		final NoOpConsumer<StubEntry> noOpConsumer = new NoOpConsumer<StubEntry>(ringBuffer);
+    		final NoOpConsumer[] noOpConsumers = new NoOpConsumer[] { noOpConsumer };
+        ringBuffer.consumersToTrack_(noOpConsumers);
     }
 
     @Test

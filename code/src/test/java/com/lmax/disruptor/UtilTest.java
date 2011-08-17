@@ -57,13 +57,13 @@ public final class UtilTest
         context.checking(new Expectations()
         {
             {
-                oneOf(consumers[0]).getSequence();
+                oneOf(consumers[0]).sequence();
                 will(returnValue(Long.valueOf(7L)));
 
-                oneOf(consumers[1]).getSequence();
+                oneOf(consumers[1]).sequence();
                 will(returnValue(Long.valueOf(3L)));
 
-                oneOf(consumers[2]).getSequence();
+                oneOf(consumers[2]).sequence();
                 will(returnValue(Long.valueOf(12L)));
             }
         });

@@ -15,6 +15,7 @@
  */
 package com.lmax.disruptor;
 
+import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.CountDownLatch;
@@ -22,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import org.junit.Test;
 
 import com.jamieallen.sdisruptor.BatchConsumer;
+import com.jamieallen.sdisruptor.Consumer;
 import com.jamieallen.sdisruptor.ConsumerBarrier;
 import com.jamieallen.sdisruptor.RingBuffer;
 import com.jamieallen.sdisruptor.SequenceTrackerCallback;
@@ -38,10 +40,11 @@ public class BatchConsumerSequenceTrackingCallbackTest
         throws Exception
     {
         final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 16, null, null);
-        final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new ConsumerBarrier<StubEntry>[0]);
+        final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new Consumer[0]);
         final SequenceTrackingHandler<StubEntry> handler = new TestSequenceTrackingHandler();
         final BatchConsumer<StubEntry> batchConsumer = new BatchConsumer<StubEntry>(consumerBarrier, handler);
-        ringBuffer.consumersToTrack_(batchConsumer);
+        final BatchConsumer[] batchConsumers = new BatchConsumer[] { batchConsumer };
+        ringBuffer.consumersToTrack_(batchConsumers);
 
         Thread thread = new Thread(batchConsumer);
         thread.setDaemon(true);
@@ -80,7 +83,14 @@ public class BatchConsumerSequenceTrackingCallbackTest
         @Override
         public void onEndOfBatch()
         {
-            onEndOfBatchLatch.await();
+        		try
+        		{
+        				onEndOfBatchLatch.await();
+        		}
+        		catch (final InterruptedException ie)
+        		{
+        				fail(String.format("InterruptedException occurred: %s", ie.getMessage()));
+        		}
         }
     }
 }

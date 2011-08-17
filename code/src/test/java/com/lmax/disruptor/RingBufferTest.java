@@ -37,6 +37,7 @@ import com.jamieallen.sdisruptor.Consumer;
 import com.jamieallen.sdisruptor.ConsumerBarrier;
 import com.jamieallen.sdisruptor.NoOpConsumer;
 import com.jamieallen.sdisruptor.RingBuffer;
+import com.jamieallen.sdisruptor.support.TestConsumer;
 import com.lmax.disruptor.support.DaemonThreadFactory;
 import com.lmax.disruptor.support.StubEntry;
 import com.lmax.disruptor.support.TestWaiter;
@@ -45,9 +46,11 @@ public class RingBufferTest
 {
     private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new DaemonThreadFactory());
     private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 20, null, null);
-    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new ConsumerBarrier<StubEntry>());
+    private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new Consumer[0]);
     {
-        ringBuffer.consumersToTrack_(new NoOpConsumer(ringBuffer));
+  			final NoOpConsumer<StubEntry> noOpConsumer = new NoOpConsumer<StubEntry>(ringBuffer);
+  			final NoOpConsumer[] noOpConsumers = new NoOpConsumer[] { noOpConsumer };
+  			ringBuffer.consumersToTrack_(noOpConsumers);
     }
 
     @Test
@@ -115,7 +118,7 @@ public class RingBufferTest
     @Test
     public void shouldClaimAndGetMultipleMessages() throws Exception
     {
-        int numMessages = ringBuffer.getCapacity();
+        int numMessages = ringBuffer.capacity();
         for (int i = 0; i < numMessages; i++)
         {
             StubEntry entry = ringBuffer.nextEntry();
@@ -129,14 +132,14 @@ public class RingBufferTest
 
         for (int i = 0; i < numMessages; i++)
         {
-            assertEquals(i, ringBuffer.getEntry(i).getValue());
+            assertEquals(i, ringBuffer.entry(i).getValue());
         }
     }
 
     @Test
     public void shouldWrap() throws Exception
     {
-        int numMessages = ringBuffer.getCapacity();
+        int numMessages = ringBuffer.capacity();
         int offset = 1000;
         for (int i = 0; i < numMessages + offset ; i++)
         {
@@ -151,7 +154,7 @@ public class RingBufferTest
 
         for (int i = offset; i < numMessages + offset; i++)
         {
-            assertEquals(i, ringBuffer.getEntry(i).getValue());
+            assertEquals(i, ringBuffer.entry(i).getValue());
         }
     }
 
@@ -167,10 +170,10 @@ public class RingBufferTest
         long sequence = consumerBarrier.waitFor(expectedSequence);
         assertEquals(expectedSequence, sequence);
 
-        StubEntry entry = ringBuffer.getEntry(sequence);
+        StubEntry entry = ringBuffer.entry(sequence);
         assertEquals(expectedEntry, entry);
 
-        assertEquals(expectedSequence, ringBuffer.getCursor());
+        assertEquals(expectedSequence, ringBuffer.cursor());
     }
 
     @Test
@@ -179,9 +182,10 @@ public class RingBufferTest
         final int ringBufferSize = 4;
         final CountDownLatch latch = new CountDownLatch(ringBufferSize);
         final AtomicBoolean producerComplete = new AtomicBoolean(false);
-        final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, ringBufferSize);
-        final TestConsumer consumer = new TestConsumer(ringBuffer.createConsumerBarrier());
-        ringBuffer.setTrackedConsumers(consumer);
+        final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, ringBufferSize, null, null);
+        final TestConsumer consumer = new TestConsumer(ringBuffer.createConsumerBarrier(new Consumer[0]));
+        final TestConsumer[] consumers = new TestConsumer[] { consumer };
+        ringBuffer.consumersToTrack_(consumers);
 
         Thread thread = new Thread(new Runnable()
         {
@@ -202,7 +206,7 @@ public class RingBufferTest
         thread.start();
 
         latch.await();
-        assertThat(Long.valueOf(ringBuffer.getCursor()), is(Long.valueOf(ringBufferSize - 1)));
+        assertThat(Long.valueOf(ringBuffer.cursor()), is(Long.valueOf(ringBufferSize - 1)));
         assertFalse(producerComplete.get());
 
         consumer.run();
@@ -215,48 +219,12 @@ public class RingBufferTest
         throws InterruptedException, BrokenBarrierException
     {
         final CyclicBarrier cyclicBarrier = new CyclicBarrier(2);
-        final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier();
+        final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new Consumer[0]);
 
         final Future<List<StubEntry>> f = EXECUTOR.submit(new TestWaiter(cyclicBarrier, consumerBarrier, initial, toWaitFor));
 
         cyclicBarrier.await();
 
         return f;
-    }
-
-    private static final class TestConsumer implements Consumer
-    {
-        private final ConsumerBarrier<StubEntry> consumerBarrier;
-        private volatile long sequence = RingBuffer.InitialCursorValue;
-
-        public TestConsumer(final ConsumerBarrier<StubEntry> consumerBarrier)
-        {
-            this.consumerBarrier = consumerBarrier;
-        }
-
-        @Override
-        public long getSequence()
-        {
-            return sequence;
-        }
-
-        @Override
-        public void halt()
-        {
-        }
-
-        @Override
-        public void run()
-        {
-            try
-            {
-                consumerBarrier.waitFor(0L);
-            }
-            catch (Exception ex)
-            {
-                throw new RuntimeException(ex);
-            }
-            ++sequence;
-        }
     }
 }

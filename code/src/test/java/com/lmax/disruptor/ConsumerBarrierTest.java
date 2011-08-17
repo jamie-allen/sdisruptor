@@ -45,11 +45,13 @@ public final class ConsumerBarrierTest
     private Consumer consumer1 = context.mock(Consumer.class, "consumer1");
     private Consumer consumer2 = context.mock(Consumer.class, "consumer2");
     private Consumer consumer3 = context.mock(Consumer.class, "consumer3");
-    private ConsumerBarrier<StubEntry>[] cbArray = {consumer1, consumer2, consumer3};
-    private ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(cbArray);
+    private Consumer[] consumerArray = {consumer1, consumer2, consumer3};
+    private ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(consumerArray);
 
     {
-        ringBuffer.consumersToTrack_(new NoOpConsumer(ringBuffer));
+    		final NoOpConsumer<StubEntry> noOpConsumer = new NoOpConsumer<StubEntry>(ringBuffer);
+    		final NoOpConsumer[] noOpConsumers = new NoOpConsumer[] { noOpConsumer };
+    		ringBuffer.consumersToTrack_(noOpConsumers);
     }
 
     @Test
@@ -87,7 +89,7 @@ public final class ConsumerBarrierTest
         for (int i = 0, size = workers.length; i < size; i++)
         {
             workers[i] = new StubConsumer();
-            workers[i].setSequence(expectedNumberMessages - 1);
+            workers[i].sequence_(expectedNumberMessages - 1);
         }
 
         final ConsumerBarrier consumerBarrier = ringBuffer.createConsumerBarrier(workers);
@@ -102,7 +104,7 @@ public final class ConsumerBarrierTest
 
                 for (StubConsumer stubWorker : workers)
                 {
-                    stubWorker.setSequence(entry.sequence());
+                    stubWorker.sequence_(entry.sequence());
                 }
             }
         };
@@ -173,7 +175,7 @@ public final class ConsumerBarrierTest
         for (int i = 0, size = entryConsumers.length; i < size; i++)
         {
             entryConsumers[i] = new StubConsumer();
-            entryConsumers[i].setSequence(expectedNumberMessages - 2);
+            entryConsumers[i].sequence_(expectedNumberMessages - 2);
         }
 
         final ConsumerBarrier consumerBarrier = ringBuffer.createConsumerBarrier(entryConsumers);
@@ -184,7 +186,7 @@ public final class ConsumerBarrierTest
             {
                 for (StubConsumer stubWorker : entryConsumers)
                 {
-                    stubWorker.setSequence(stubWorker.getSequence() + 1);
+                    stubWorker.sequence_(stubWorker.sequence() + 1);
                 }
             }
         };
