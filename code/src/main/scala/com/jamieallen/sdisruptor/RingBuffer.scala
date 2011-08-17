@@ -45,9 +45,6 @@ class RingBuffer[T <: AbstractEntry : ClassManifest](entryFactory: EntryFactory[
   val sizeAsPowerOfTwo = Util.ceilingNextPowerOfTwo(size)
   val ringModMask = sizeAsPowerOfTwo - 1
   val entries: Array[T] = new Array[T](sizeAsPowerOfTwo)
-//  val entries: Array[T] = getNewArray(sizeAsPowerOfTwo)
-//
-//  def getNewArray[T](size: Int)(implicit m: ClassManifest[T]): Array[T] = new Array[T](size)
   
   var lastTrackedConsumerMin = RingBuffer.InitialCursorValue
   var _consumersToTrack = new Array[Consumer](0)

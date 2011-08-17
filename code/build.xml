@@ -37,6 +37,9 @@
             <include name="*.jar"/>
             <include name="*.zip"/>
         </fileset>
+        <fileset dir="${env.SCALA_HOME}/lib/"> 
+          <include name="*.jar" /> 
+        </fileset>
     </path>
 
     <target name="clean"
@@ -59,12 +62,9 @@
     <target name="build"
             depends="main:prepare"
             description="Build main source code">
-        <scalac destdir="${dir.main.build}" unchecked="off">
+        <scalac destdir="${dir.main.build}" unchecked="on">
             <src path="${dir.main.scala.src}"/>
-            <classpath>
-              <pathelement location="${env.SCALA_HOME}/lib/scala-compiler.jar" />
-              <pathelement location="${env.SCALA_HOME}/lib/scala-library.jar" />
-            </classpath>
+            <classpath refid="project.classpath"/>
             <include name="**/*.scala"/>
         </scalac>
     </target>
