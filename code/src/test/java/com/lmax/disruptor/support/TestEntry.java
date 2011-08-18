@@ -21,7 +21,19 @@ import com.jamieallen.sdisruptor.EntryFactory;
 public final class TestEntry
     extends AbstractEntry
 {
-    @Override
+		private long _sequence = -1L;
+
+    public long _sequence()
+    {
+    		return _sequence;
+    }
+    
+    public void _sequence_$eq(long newValue)
+    {
+    		_sequence = newValue;
+    }
+
+		@Override
     public String toString()
     {
         return "Test Entry";

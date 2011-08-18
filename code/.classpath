@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/main/scala"/>
-	<classpathentry including="**/*.scala" kind="src" path="src/perf/java"/>
+	<classpathentry including="**/*.scala" kind="src" path="src/main/scala"/>
+	<classpathentry including="**/*.java|**/*.scala" kind="src" path="src/perf/java"/>
 	<classpathentry including="**/*.java|**/*.scala" kind="src" path="src/test/java"/>
 	<classpathentry kind="lib" path="lib/test/cglib-nodep-2.1_3.jar"/>
 	<classpathentry kind="lib" path="lib/test/hamcrest-core-1.1.jar"/>

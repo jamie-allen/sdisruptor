@@ -15,15 +15,13 @@
  */
 package com.jamieallen.sdisruptor.support;
 
-import com.jamieallen.sdisruptor.Consumer;
-import com.jamieallen.sdisruptor.ConsumerBarrier;
-import com.jamieallen.sdisruptor.RingBuffer;
+import com.jamieallen.sdisruptor.*;
 import com.lmax.disruptor.support.StubEntry;
 
 public final class TestConsumer implements Consumer
 {
     private final ConsumerBarrier<StubEntry> consumerBarrier;
-    private volatile long sequence = RingBuffer.InitialCursorValue;
+    private volatile long sequence = -1L;
 
     public TestConsumer(final ConsumerBarrier<StubEntry> consumerBarrier)
     {

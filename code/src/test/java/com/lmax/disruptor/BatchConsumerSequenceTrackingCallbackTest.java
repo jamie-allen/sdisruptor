@@ -76,7 +76,7 @@ public class BatchConsumerSequenceTrackingCallbackTest
         @Override
         public void onAvailable(final StubEntry entry)
         {
-            sequenceTrackerCallback.onCompleted(entry.sequence());
+            sequenceTrackerCallback.onCompleted(entry._sequence());
             callbackLatch.countDown();
         }
 

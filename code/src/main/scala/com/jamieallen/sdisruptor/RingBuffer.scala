@@ -17,11 +17,6 @@ package com.jamieallen.sdisruptor
 
 import java.util.concurrent.TimeUnit;
 
-object RingBuffer {
-  /** Set to -1 as sequence starting point */
-	val InitialCursorValue = -1L
-}
-
 /** Ring based store of reusable entries containing the data representing an {@link AbstractEntry} being exchanged between producers and consumersToTrack.
  *
  *  @param <T> AbstractEntry implementation storing the data for sharing during exchange or parallel coordination of an event.
@@ -39,14 +34,14 @@ class RingBuffer[T <: AbstractEntry : ClassManifest](entryFactory: EntryFactory[
 
 
   val p1, p2, p3, p4, p5, p6, p7: Long = -1L // cache line padding
-  @volatile private var _cursor = RingBuffer.InitialCursorValue
+  @volatile private var _cursor = -1L
   val p8, p9, p10, p11, p12, p13, p14: Long = -1L // cache line padding
 
   val sizeAsPowerOfTwo = Util.ceilingNextPowerOfTwo(size)
   val ringModMask = sizeAsPowerOfTwo - 1
   val entries: Array[T] = new Array[T](sizeAsPowerOfTwo)
   
-  var lastTrackedConsumerMin = RingBuffer.InitialCursorValue
+  var lastTrackedConsumerMin = -1L
   var _consumersToTrack = new Array[Consumer](0)
 
   var claimStrategy: ClaimStrategy = ClaimStrategy.newInstance(claimStrategyOption)

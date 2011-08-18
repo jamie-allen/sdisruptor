@@ -20,6 +20,7 @@ import com.jamieallen.sdisruptor.EntryFactory;
 
 public final class StubEntry extends AbstractEntry
 {
+		private long _sequence = -1L;
     private int value;
     private String testString;
 
@@ -60,6 +61,16 @@ public final class StubEntry extends AbstractEntry
             return new StubEntry(-1);
         }
     };
+    
+    public long _sequence()
+    {
+    		return _sequence;
+    }
+    
+    public void _sequence_$eq(long newValue)
+    {
+    		_sequence = newValue;
+    }
 
     @Override
     public int hashCode()

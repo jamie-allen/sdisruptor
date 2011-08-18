@@ -31,7 +31,7 @@ object ClaimStrategy {
   /** Optimised strategy can be used when there is a single producer thread claiming {@link AbstractEntry}s.
    */
   class SingleThreadedStrategy extends ClaimStrategy {
-    private var _sequence = RingBuffer.InitialCursorValue
+    private var _sequence = -1L
 
     override def incrementAndGet() = {
       _sequence += 1
@@ -49,7 +49,7 @@ object ClaimStrategy {
   /** Strategy to be used when there are multiple producer threads claiming {@link AbstractEntry}s.
 	 */
   class MultiThreadedStrategy extends ClaimStrategy {
-	  private val _sequence = new AtomicLong(RingBuffer.InitialCursorValue)
+	  private val _sequence = new AtomicLong(-1L)
 	
 	  override def incrementAndGet() = _sequence.incrementAndGet
 	  override def incrementAndGet(delta: Int) = _sequence.addAndGet(delta)

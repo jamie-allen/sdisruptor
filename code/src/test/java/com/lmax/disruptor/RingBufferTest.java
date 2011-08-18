@@ -56,7 +56,7 @@ public class RingBufferTest
     @Test
     public void shouldClaimAndGet() throws Exception
     {
-        assertEquals(RingBuffer.InitialCursorValue(), ringBuffer.cursor());
+        assertEquals(-1L, ringBuffer.cursor());
 
         StubEntry expectedEntry = new StubEntry(2701);
 
@@ -76,7 +76,7 @@ public class RingBufferTest
     @Test
     public void shouldClaimAndGetWithTimeout() throws Exception
     {
-        assertEquals(RingBuffer.InitialCursorValue(), ringBuffer.cursor());
+        assertEquals(-1L, ringBuffer.cursor());
 
         StubEntry expectedEntry = new StubEntry(2701);
 
@@ -98,7 +98,7 @@ public class RingBufferTest
     public void shouldGetWithTimeout() throws Exception
     {
         long sequence = consumerBarrier.waitFor(0, 5, TimeUnit.MILLISECONDS);
-        assertEquals(RingBuffer.InitialCursorValue(), sequence);
+        assertEquals(-1L, sequence);
     }
 
     @Test

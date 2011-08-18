@@ -18,7 +18,7 @@ package com.jamieallen.sdisruptor
 /** Used to record the batch of sequences claimed in a {@link RingBuffer}.
  */
 class SequenceBatch(val size: Int) {
-  private var _end = RingBuffer.InitialCursorValue
+  private var _end = -1L
 
   /** Get the end sequence of a batch.
    *
