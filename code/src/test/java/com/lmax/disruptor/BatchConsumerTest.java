@@ -63,7 +63,7 @@ public final class BatchConsumerTest
     @Test
     public void shouldReturnUnderlyingBarrier()
     {
-        assertEquals(consumerBarrier, batchConsumer.consumerBarrier());
+        assertEquals(consumerBarrier, batchConsumer.consumerBarrier);
     }
 
     @Test

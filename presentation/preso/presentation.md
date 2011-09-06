@@ -28,7 +28,7 @@ This is a decidedly NOT functional implementation.  No referential transparency,
 !SLIDE transition=fade
 
 # How Did They Arrive at the Disruptor
-.notes 	Initiative started several years ago at Betfair with Martin Thompson and Matt Youill (CTO of Betfair), with the Flywheel and 100x projects, trying to glean more performance from their system
+.notes 	Initiative started several years ago at Betfair with Martin Thompson, at that time head of emerging technologies and then solutions architect for new ventures, and Matt Youill, Chief Scientist of Betfair.  Flywheel and 100x projects, trying to glean more performance from their system.  The 100x system did perform for a limited subset of the application with good throughput using SEDA but the latency was unacceptable for finance and it incurred significant GC
 Looked into J2EE, SEDA, Actors, etc - couldn't get the throughput they desired
 SEDA: complex, event-driven application divided into stages connected by queues, supporting back pressure and load management
 Actors are a subset of SEDA, with lock-free semantics
@@ -40,7 +40,7 @@ Neither project made it to production due to legacy integration issues
 !SLIDE transition=fade
 
 # How Did They Arrive at the Disruptor
-.notes Betfair spun off Tradefair into LMAX, Martin Thompson leaves Matt Youill, works with Mike Barker and the rest of the team on their clean slate, greenfield Disruptor implementation
+.notes Betfair spun off Tradefair into LMAX, Martin Thompson works with Mike Barker and the rest of the team on their clean slate, greenfield Disruptor implementation
 So named because it has elements for dealing with graphs of dependencies comparable to the Java7 Phaser concurrency type, introduced in support of ForkJoin
 And if there's a Phaser, there should be a Disruptor, right?
 (TOBY) Disruptor serves the purpose of a queue in a SEDA architecture
@@ -62,12 +62,13 @@ But why implement it on the JVM instead of C++ or a native implementation?
 .notes Processors are much faster than memory now, and to optimize their performance, they use varying levels of caches (registers, store buffers, L1, L2, L3 and main memory) to support the execution of instructions, and they are kept coherent via message passing protocols
 Speed of cache access is measured in cycles, but generally occurs in nanoseconds
 Registers are obvious (on-processor storage for WIP)
-Store buffers disambiguate memory access and manage dependencies for instructions (loads and stores) occurring out of program order.  While a request for data to be stored to an L2 cache line is outstanding, the data is temporarily stored on one or more store buffers on the processor itself.  On an Intel CPU, you only get 4 at a time.  No loop should write to more than these 4 spaces at a time for maximum speed (write combining).  Split logic up so that separate loop iterations execute sequentially for more speed.
+Store buffers disambiguate memory access and manage dependencies for instructions (loads and stores) occurring out of program order.  CPUs typically have load and store buffers which are associative queues of separate load and store instructions that are outstanding to the cache which can be snooped to preserve program order.  Write combining store buffers are a different beast and are used when an L2 cache miss occurs.  Up to four are available to a *core* at a time.  No loop should write to more than these 4 spaces at a time for maximum speed (write combining).  Split logic up so that separate loop iterations execute sequentially for more speed.
 Note that store barriers are flushed when a memory barrier is hit - best to model a problem so that barriers are hit at the boundary of the work unit.  Change a variable last.
 Caches are STATIC Random Access Memory (bistable latching circuitry), does not need to be periodically refreshed like DYNAMIC RAM used in main memory (charged capacitors "leak" the charge denoting whether the bit is 0 or 1, so data "fades").  DRAM is much simpler - one transistor and a capacitor per bit versus 6 in SRAM, and thus much higher densities (hundreds of billions of transistors and capacitors  on a single memory chip).  There's even non-volatile SRAM which maintains data even when power is lost.
 Note: Your fancy i7 processor has an 8MB on-die unified L3 cache that is inclusive, shared by all cores
 Some processors have rules for the caches, such strictly inclusive, where all data in L1 must also be in L2.  Athlon processors are exclusive and can hold more data, which is great when L1 is comparable in size to L2, diminishes when L2 is many times larger.  Not universal, so you have to know your processors policy.
 One of the most expensive operations for a process is a cache read miss - when data is looked for in one of the caches and not found, so it must allocate space (evicting something else) and go to the next level to retrieve the data (note: write misses have no penalty because the data can be copied in background)
+The timings for different memory access should be: registers 1 clock cycle, store buffers ~1 clock cycle, L1 cache ~3-4 clock cycles, L2 cache ~8-10 clock cycles, L3 cache ~32-34 cycles, main memory on same socket 65 ns (note not clocks), Main memory on another socket have to add 20ns per QPI traversal.
 The cache "hit rate" measures the effectiveness of your program/algorithm in using a cache
 
 <img src="cache.png" class="illustration" note="final slash needed"/>

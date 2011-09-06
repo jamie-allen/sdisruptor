@@ -27,8 +27,8 @@ import java.util.concurrent.TimeUnit;
  */
 class RingBuffer[T <: AbstractEntry : ClassManifest](entryFactory: EntryFactory[T], 
     								size: Int,
-                    var claimStrategyOption: Symbol,
-                    var waitStrategyOption: Symbol) extends ProducerBarrier[T] {
+                    var claimStrategyOption: String,
+                    var waitStrategyOption: String) extends ProducerBarrier[T] {
   if (claimStrategyOption == null) claimStrategyOption = ClaimStrategy.MultiThreaded
   if (waitStrategyOption == null) waitStrategyOption = WaitStrategy.Blocking
 

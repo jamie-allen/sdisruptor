@@ -18,10 +18,10 @@ package com.jamieallen.sdisruptor
 import java.util.concurrent.atomic.AtomicLong;
 
 object ClaimStrategy {
-  val MultiThreaded = 'multiThreaded
-  val SingleThreaded = 'singleThreaded
+  val MultiThreaded = "multiThreaded"
+  val SingleThreaded = "singleThreaded"
   
-	def newInstance(option: Symbol): ClaimStrategy = {
+	def newInstance(option: String): ClaimStrategy = {
 	  option match {
 	    case SingleThreaded => new SingleThreadedStrategy
 	    case MultiThreaded => new MultiThreadedStrategy

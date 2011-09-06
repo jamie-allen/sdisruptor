@@ -23,11 +23,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import scala.util.control.Breaks._
 
 object WaitStrategy {
-  val Blocking = 'blocking
-  val BusySpin = 'busySpin
-  val Yielding = 'yielding
+  val Blocking = "blocking"
+  val BusySpin = "busySpin"
+  val Yielding = "yielding"
   
-	def newInstance(option: Symbol): WaitStrategy = {
+	def newInstance(option: String): WaitStrategy = {
 	  option match {
 	    case Blocking => new BlockingStrategy
 	    case BusySpin => new BusySpinStrategy

@@ -45,7 +45,7 @@ import com.lmax.disruptor.support.TestWaiter;
 public class RingBufferTest
 {
     private final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(new DaemonThreadFactory());
-    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 20, null, null);
+    private final RingBuffer<StubEntry> ringBuffer = new RingBuffer<StubEntry>(StubEntry.ENTRY_FACTORY, 20, (String)null, (String)null);
     private final ConsumerBarrier<StubEntry> consumerBarrier = ringBuffer.createConsumerBarrier(new Consumer[0]);
     {
   			final NoOpConsumer<StubEntry> noOpConsumer = new NoOpConsumer<StubEntry>(ringBuffer);
